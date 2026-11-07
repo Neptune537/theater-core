@@ -1,0 +1,16 @@
+services:
+  # 1. 24/7 Siren Radio Stream & Audio Web Ingress
+  - type: web
+    name: theater-radio-streamer
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: radio_streamer
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python stream_server.py --port 10000"
+    healthCheckPath: "/status"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.11.0
