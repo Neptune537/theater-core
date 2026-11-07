@@ -1,3 +1,4 @@
 aiohttp>=3.9.0
 mutagen>=1.47.0
 requests>=2.31.0
+edge-tts>=6.1.10
