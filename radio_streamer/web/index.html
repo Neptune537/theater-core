@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theater 24/7 • Cyan Network Master Console</title>
+    <style>
+        :root {
+            --bg-deep: #050811;
+            --bg-card: #0A0F1D;
+            --bg-panel: #0E1629;
+            --border: #1B2845;
+            --border-glow: rgba(0, 229, 255, 0.35);
+            --cyan: #00E5FF;
+            --cyan-glow: rgba(0, 229, 255, 0.2);
+            --red: #EF4444;
+            --green: #10B981;
+            --amber: #F59E0B;
+            --purple: #A855F7;
+            --text-main: #FFFFFF;
+            --text-muted: #94A3B8;
+            --text-dim: #64748B;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
+        }
+
+        header {
+            background: rgba(10, 15, 29, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            text-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .live-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            font-weight: 700;
+            font-size: 11px;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--red);
+            box-shadow: 0 0 8px var(--red);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-master {
+            background: var(--cyan);
+            color: #030712;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 14px rgba(0, 229, 255, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn-master:hover {
+            background: #fff;
+            transform: translateY(-1px);
+        }
+
+        .eq-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+
+        .eq-bar {
+            width: 3px;
+            background: #030712;
+            border-radius: 1px;
+            height: 3px;
+            transition: height 0.08s ease;
+        }
+
+        .playing:not(.has-analyser) .eq-bar:nth-child(1) { animation: eq 0.6s infinite ease-in-out alternate; }
+        .playing:not(.has-analyser) .eq-bar:nth-child(2) { animation: eq 0.4s infinite ease-in-out alternate 0.1s; }
+        .playing:not(.has-analyser) .eq-bar:nth-child(3) { animation: eq 0.7s infinite ease-in-out alternate 0.2s; }
+        .playing:not(.has-analyser) .eq-bar:nth-child(4) { animation: eq 0.5s infinite ease-in-out alternate 0.15s; }
+
+        @keyframes eq {
+            from { height: 3px; }
+            to { height: 14px; }
+        }
+
+        .vol-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .vol-slider {
+            -webkit-appearance: none;
+            width: 80px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border);
+            outline: none;
+        }
+
+        .vol-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--cyan);
+            cursor: pointer;
+        }
+
+        /* RIBBON BANNER */
+        .ribbon-banner {
+            background: linear-gradient(90deg, #0A0F1D, #111A30, #0A0F1D);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            font-size: 12px;
+        }
+
+        .ribbon-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .ribbon-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .ribbon-val {
+            color: var(--cyan);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chaos-meter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chaos-bar {
+            flex: 1;
+            height: 6px;
+            background: #1E293B;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .chaos-fill {
+            height: 100%;
+            width: 45%;
+            background: linear-gradient(90deg, var(--green), var(--amber));
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        /* MAIN CONTAINER */
+        main {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* DUAL TURNTABLES DESK */
+        .turntable-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .turntable-grid { grid-template-columns: 1fr; }
+        }
+
+        .deck-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s;
+        }
+
+        .deck-card.active-deck {
+            border-color: var(--cyan);
+            box-shadow: 0 8px 30px var(--cyan-glow);
+        }
+
+        .deck-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .deck-title {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: var(--cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .deck-bpm {
+            background: #030712;
+            border: 1px solid var(--border);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--amber);
+        }
+
+        /* VINYL VISUALIZER */
+        .vinyl-stage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px 0;
+            position: relative;
+        }
+
+        .vinyl-platter {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #0B0F19 0%, #03060C 70%, #000 100%);
+            border: 4px solid #1E293B;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 229, 255, 0.1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vinyl-platter::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            background: repeating-radial-gradient(
+                circle,
+                transparent 0,
+                transparent 4px,
+                rgba(255, 255, 255, 0.04) 5px,
+                transparent 6px
+            );
+            pointer-events: none;
+        }
+
+        .vinyl-label {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            position: relative;
+            background: #111;
+        }
+
+        .vinyl-label img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vinyl-spindle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #94A3B8;
+            border: 2px solid #000;
+            z-index: 10;
+        }
+
+        .spinning {
+            animation: spinRecord 1.8s linear infinite;
+        }
+
+        @keyframes spinRecord {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .tonearm {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            width: 18px;
+            height: 130px;
+            transform-origin: top right;
+            transform: rotate(-18deg);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .tonearm.engaged {
+            transform: rotate(14deg);
+        }
+
+        .tonearm-pivot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #475569;
+            border: 2px solid #1E293B;
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        .tonearm-rod {
+            width: 4px;
+            height: 110px;
+            background: linear-gradient(180deg, #94A3B8, #CBD5E1);
+            position: absolute;
+            top: 18px;
+            right: 10px;
+            border-radius: 2px;
+        }
+
+        .tonearm-head {
+            width: 14px;
+            height: 22px;
+            background: #00E5FF;
+            position: absolute;
+            bottom: 0;
+            right: 5px;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+        }
+
+        .deck-info {
+            background: #030712;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .deck-song-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .deck-song-artist {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .deck-song-album {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .deck-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-deck {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-panel);
+            color: var(--text-main);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-deck:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .btn-takeover {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(16, 185, 129, 0.2));
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .btn-takeover:hover {
+            background: var(--cyan);
+            color: #030712;
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        /* CROSSFADER SLIDER PANEL */
+        .crossfader-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .crossfader-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .crossfader-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--cyan);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .crossfader-readout {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: #030712;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .deck-badge-label {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            width: 100px;
+            text-align: center;
+        }
+
+        .slider-track-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .deck-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, rgba(0, 229, 255, 0.4), rgba(30, 41, 59, 0.8) 50%, rgba(245, 158, 11, 0.4));
+            outline: none;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .deck-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 28px;
+            border-radius: 6px;
+            background: #FFFFFF;
+            border: 2px solid #00E5FF;
+            box-shadow: 0 0 12px var(--cyan), inset 0 0 4px rgba(0,0,0,0.5);
+            cursor: ew-resize;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .deck-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.08);
+            background: #00E5FF;
+        }
+
+        .crossfader-meters {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--text-dim);
+        }
+
+        .crossfader-btn-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-fader-action {
+            background: #030712;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-fader-action:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .btn-auto-dissolve {
+            background: linear-gradient(90deg, rgba(0, 229, 255, 0.15), rgba(168, 85, 247, 0.15));
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .btn-auto-dissolve:hover {
+            background: var(--cyan);
+            color: #030712;
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        /* EVENT TIMELINE & SCHEDULE COMPARATOR */
+        .timeline-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .timeline-title {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* COMPARE CARDS */
+        .comparator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 900px) {
+            .comparator-grid { grid-template-columns: 1fr; }
+        }
+
+        .compare-card {
+            background: #030712;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .compare-tag {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+        }
+
+        .compare-main {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .compare-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .status-badge-active {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            width: fit-content;
+        }
+
+        .status-badge-transitioning {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--amber);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            width: fit-content;
+            animation: pulseAmber 1s infinite alternate;
+        }
+
+        @keyframes pulseAmber {
+            from { box-shadow: 0 0 4px rgba(245, 158, 11, 0.2); }
+            to { box-shadow: 0 0 14px rgba(245, 158, 11, 0.6); }
+        }
+
+        /* EVENT TABLE */
+        .table-wrapper {
+            background: #030712;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .event-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            text-align: left;
+        }
+
+        .event-table th {
+            background: #080D1A;
+            padding: 10px 12px;
+            color: var(--text-dim);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .event-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        .event-table tr:hover {
+            background: rgba(0, 229, 255, 0.03);
+        }
+
+        .badge-type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-song { background: rgba(0, 229, 255, 0.15); color: var(--cyan); border: 1px solid rgba(0, 229, 255, 0.3); }
+        .badge-outro { background: rgba(245, 158, 11, 0.2); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-news { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-fader { background: rgba(168, 85, 247, 0.15); color: var(--purple); border: 1px solid rgba(168, 85, 247, 0.4); }
+        .badge-takeover { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.4); }
+
+        /* CRATES & MUSIC SELECTION */
+        .crates-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .crates-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .crates-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .crates-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #030712;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0, 229, 255, 0.08);
+        }
+
+        .search-box {
+            background: #030712;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: #fff;
+            font-size: 12px;
+            width: 260px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--cyan);
+        }
+
+        .crates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .crates-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .crates-grid::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .track-card {
+            background: #030712;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .track-card:hover {
+            border-color: rgba(0, 229, 255, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .track-cover {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #111;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .track-details {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .track-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-badges {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .badge-bpm {
+            font-size: 9px;
+            font-family: monospace;
+            color: var(--amber);
+            background: rgba(245, 158, 11, 0.1);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        .track-buttons {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .mini-btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .mini-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .mini-btn.spin-now {
+            border-color: rgba(16, 185, 129, 0.5);
+            color: var(--green);
+        }
+        .mini-btn.spin-now:hover {
+            background: var(--green);
+            color: #030712;
+        }
+
+        /* STATUS TICKER */
+        footer {
+            background: #020409;
+            border-top: 1px solid var(--border);
+            padding: 8px 24px;
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-bullet {
+            color: var(--green);
+            margin-right: 6px;
+        }
+
+        /* DUAL NODE ARCHITECTURE DIVISION (SEBASTIAN & URSULA) */
+        .node-division-banner {
+            display: flex;
+            gap: 12px;
+            padding: 8px 32px;
+            background: #030712;
+            border-bottom: 1px solid var(--border);
+        }
+        .node-pill {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(11, 15, 25, 0.7);
+        }
+        .sound-pill {
+            border-color: rgba(96, 165, 250, 0.3);
+            background: linear-gradient(90deg, rgba(30, 58, 138, 0.15), rgba(11, 15, 25, 0.6));
+        }
+        .visual-pill {
+            border-color: rgba(244, 114, 182, 0.3);
+            background: linear-gradient(90deg, rgba(131, 24, 67, 0.15), rgba(11, 15, 25, 0.6));
+        }
+        .pill-icon {
+            font-size: 20px;
+        }
+        .pill-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .pill-label {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        .sound-pill .pill-label { color: #93C5FD; }
+        .visual-pill .pill-label { color: #F9A8D4; }
+        .pill-val {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .pill-val .mono {
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-container">
+            <div>
+                <div class="brand-title">ATLANTIS • CLUB FORTRESS THEATER</div>
+                <div class="brand-subtitle">Nautilus 3D Anchor: Oceanic Citadel • Room: Siren Conductor Sanctuary • Sabine RT₆₀ 0.62s</div>
+            </div>
+            <div class="live-tag">
+                <div class="live-dot"></div> FORTRESS ROOM ON-AIR
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <div class="vol-container">
+                <span>VOL</span>
+                <input type="range" class="vol-slider" id="master-vol" min="0" max="1" step="0.05" value="0.8">
+            </div>
+
+            <button class="btn-master" id="btn-master-tune" onclick="toggleMasterAudio()">
+                <div class="eq-bars" id="master-eq">
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                </div>
+                <span id="master-tune-label">TUNE IN LIVE</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- CANONICAL DUAL-NODE ARCHITECTURE ROUTING -->
+    <div class="node-division-banner">
+        <div class="node-pill sound-pill">
+            <span class="pill-icon">🎵</span>
+            <div class="pill-content">
+                <span class="pill-label">SOUND ASPECT • SEBASTIAN IN ATLANTIS</span>
+                <span class="pill-val">Court Conductor (<span class="mono">did:atlantis:sebastian-edgecrab-tier3</span> • Tier 3 Edge • 48kHz Stereo • Sabine RT₆₀ 0.62s)</span>
+            </div>
+        </div>
+        <div class="node-pill visual-pill">
+            <span class="pill-icon">🎨</span>
+            <div class="pill-content">
+                <span class="pill-label">VISUAL ASPECT • URSULA IN LUMERIA</span>
+                <span class="pill-val">Graphical Orchestrator (<span class="mono">did:atlantis:ursula-node-manager</span> • Tier 2 Manager • Cook-Torrance GGX PBR & Froxel Shaders)</span>
+            </div>
+        </div>
+    </div>
+
+    <audio id="live-stream-audio" preload="none" crossorigin="anonymous"></audio>
+
+    <div class="ribbon-banner">
+        <div class="ribbon-item">
+            <div class="ribbon-label">NAUTILUS FORTRESS ROOM</div>
+            <div class="ribbon-val" style="color: var(--cyan);" id="r-fortress-room">Oceanic Citadel • East Sanctuary</div>
+        </div>
+        <div class="ribbon-item">
+            <div class="ribbon-label">SPATIAL ACOUSTICS</div>
+            <div class="ribbon-val" id="r-acoustics">Sabine RT₆₀: 0.62s Studio</div>
+        </div>
+        <div class="ribbon-item">
+            <div class="ribbon-label">ON-AIR BROADCASTER</div>
+            <div class="ribbon-val" id="r-speaker">Sebastian (Court Conductor)</div>
+        </div>
+        <div class="ribbon-item">
+            <div class="ribbon-label">TITAN CHAOS MONITOR</div>
+            <div class="chaos-meter">
+                <div class="chaos-bar">
+                    <div class="chaos-fill" id="r-chaos-fill"></div>
+                </div>
+                <span class="ribbon-val" style="font-size: 11px;" id="r-chaos-text">MONITORING TRENCHES</span>
+            </div>
+        </div>
+        <div class="ribbon-item">
+            <div class="ribbon-label">SCHEDULED BULLETIN</div>
+            <div class="ribbon-val" id="r-countdown">Quarterly news in: --m --s</div>
+        </div>
+        <div class="ribbon-item">
+            <div class="ribbon-label">METEOROLOGICAL WIRE</div>
+            <div class="ribbon-val" id="r-weather">Loading live weather...</div>
+        </div>
+    </div>
+
+    <main>
+        <!-- DUAL TURNTABLES DESK -->
+        <section class="turntable-grid">
+            <!-- DECK A -->
+            <div class="deck-card active-deck" id="deck-card-a">
+                <div class="deck-header">
+                    <div class="deck-title">
+                        <span>● DECK A (PRIMARY)</span>
+                    </div>
+                    <div class="deck-bpm" id="deck-a-bpm">124.0 BPM</div>
+                </div>
+
+                <div class="vinyl-stage">
+                    <div class="vinyl-platter spinning" id="vinyl-a">
+                        <div class="vinyl-spindle"></div>
+                        <div class="vinyl-label">
+                            <img id="deck-a-cover" src="https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ccdddd46119a4ff53eaf1f5d" alt="Album Cover">
+                        </div>
+                    </div>
+                    <div class="tonearm engaged" id="tonearm-a">
+                        <div class="tonearm-pivot"></div>
+                        <div class="tonearm-rod"></div>
+                        <div class="tonearm-head"></div>
+                    </div>
+                </div>
+
+                <div class="deck-info">
+                    <div class="deck-song-title" id="deck-a-title">Mr. Brightside</div>
+                    <div class="deck-song-artist" id="deck-a-artist">The Killers</div>
+                    <div class="deck-song-album" id="deck-a-album">Hot Fuss • Spotify Master</div>
+                </div>
+
+                <div class="deck-actions">
+                    <button class="btn-deck btn-takeover" onclick="takeoverBroadcast('A')">
+                        ⚡ SPIN ON-AIR (TAKE OVER)
+                    </button>
+                    <button class="btn-deck" onclick="openSpotify('A')">
+                        SPOTIFY ↗
+                    </button>
+                </div>
+            </div>
+
+            <!-- DECK B -->
+            <div class="deck-card" id="deck-card-b">
+                <div class="deck-header">
+                    <div class="deck-title" style="color: var(--amber);">
+                        <span>● DECK B (STANDBY / CUE)</span>
+                    </div>
+                    <div class="deck-bpm" id="deck-b-bpm">124.0 BPM</div>
+                </div>
+
+                <div class="vinyl-stage">
+                    <div class="vinyl-platter" id="vinyl-b">
+                        <div class="vinyl-spindle"></div>
+                        <div class="vinyl-label">
+                            <img id="deck-b-cover" src="https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02622aefd794f6fe4d8e714358" alt="Album Cover">
+                        </div>
+                    </div>
+                    <div class="tonearm" id="tonearm-b">
+                        <div class="tonearm-pivot"></div>
+                        <div class="tonearm-rod"></div>
+                        <div class="tonearm-head"></div>
+                    </div>
+                </div>
+
+                <div class="deck-info">
+                    <div class="deck-song-title" id="deck-b-title">Feel Good Inc.</div>
+                    <div class="deck-song-artist" id="deck-b-artist">Gorillaz, De La Soul</div>
+                    <div class="deck-song-album" id="deck-b-album">Demon Days • Spotify Master</div>
+                </div>
+
+                <div class="deck-actions">
+                    <button class="btn-deck btn-takeover" onclick="takeoverBroadcast('B')">
+                        ⚡ SPIN ON-AIR (TAKE OVER)
+                    </button>
+                    <button class="btn-deck" onclick="openSpotify('B')">
+                        SPOTIFY ↗
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- DECK SLIDER / SMOOTH CROSSFADER PANEL -->
+        <section class="crossfader-panel">
+            <div class="crossfader-header">
+                <div class="crossfader-title">
+                    <span>🎚 DECK CROSSFADER SLIDER (SMOOTH TRANSITION ENGINE)</span>
+                </div>
+                <div class="crossfader-readout" id="fader-readout">DECK A [100%] ◄──●──► DECK B [0%]</div>
+            </div>
+
+            <div class="slider-wrapper">
+                <div class="deck-badge-label" style="color: var(--cyan);" id="label-fader-a">DECK A (100%)</div>
+                <div class="slider-track-container">
+                    <input type="range" class="deck-slider" id="deck-crossfader" min="0" max="1" step="0.01" value="0" oninput="onFaderSliderInput(this.value)">
+                    <div class="crossfader-meters">
+                        <span id="meter-a">Deck A Gain: 1.00</span>
+                        <span id="transition-timer-readout" style="color: var(--amber); font-weight: bold;"></span>
+                        <span id="meter-b">Deck B Gain: 0.00</span>
+                    </div>
+                </div>
+                <div class="deck-badge-label" style="color: var(--amber);" id="label-fader-b">DECK B (0%)</div>
+            </div>
+
+            <div class="crossfader-btn-row">
+                <button class="btn-fader-action" onclick="fadeToDeck('A')">◀ FADE TO DECK A (0%)</button>
+                <button class="btn-fader-action btn-auto-dissolve" onclick="triggerAuto10sDissolve()">⚡ AUTO 10s DISSOLVE TRANSITION</button>
+                <button class="btn-fader-action" onclick="fadeToDeck('B')">FADE TO DECK B (100%) ▶</button>
+            </div>
+        </section>
+
+        <!-- BROADCAST EVENT TIMELINE & SCHEDULE COMPARATOR -->
+        <section class="timeline-panel">
+            <div class="timeline-header">
+                <div class="timeline-title">
+                    <span>📡 BROADCAST EVENT TIMELINE & SCHEDULE COMPARATOR</span>
+                    <span style="font-size: 11px; color: var(--text-dim);">Live Log of Events: Expected Schedule vs Actual State</span>
+                </div>
+                <div>
+                    <button class="mini-btn" onclick="fetchEvents()">↻ Refresh Events</button>
+                </div>
+            </div>
+
+            <!-- COMPARISON METRICS CARDS -->
+            <div class="comparator-grid">
+                <div class="compare-card">
+                    <div class="compare-tag">CURRENT TRANSMITTER STATE</div>
+                    <div class="compare-main" id="comp-current-song">Burn (feat. Ava Max)</div>
+                    <div class="compare-sub" id="comp-current-deck">Active on Deck A • Slider: 0%</div>
+                </div>
+
+                <div class="compare-card">
+                    <div class="compare-tag">WHAT SHOULD BE HAPPENING (TARGET)</div>
+                    <div class="compare-main" id="comp-target-action" style="color: var(--cyan);">Playing until 10s outro -> Crossfade</div>
+                    <div class="compare-sub" id="comp-target-sub">Next Track cued on opposite turntable</div>
+                </div>
+
+                <div class="compare-card">
+                    <div class="compare-tag">TRANSITION STATUS</div>
+                    <div id="comp-status-badge">
+                        <div class="status-badge-active">● STEADY BROADCASTING</div>
+                    </div>
+                    <div class="compare-sub" id="comp-status-sub">Smooth 10s crossfader active during outro window</div>
+                </div>
+            </div>
+
+            <!-- EVENT LOG TABLE -->
+            <div class="table-wrapper">
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 85px;">Time</th>
+                            <th style="width: 140px;">Event Type</th>
+                            <th>What Should Be Happening (Target)</th>
+                            <th>Actual Transmitter State</th>
+                            <th style="width: 160px;">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-table-body">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CRATES MUSIC SELECTOR -->
+        <section class="crates-panel">
+            <div class="crates-header">
+                <div class="crates-title">
+                    <span>CRATE SELECTOR</span>
+                    <span style="font-size: 11px; color: var(--text-dim);" id="track-count-badge">(311 Tracks)</span>
+                </div>
+
+                <div class="crates-filters">
+                    <button class="filter-btn active" id="btn-filter-liked" onclick="applyFilter('LIKED')">💚 Liked Songs (Default)</button>
+                    <button class="filter-btn" id="btn-filter-c" onclick="applyFilter('C')">Spotify Crates</button>
+                    <button class="filter-btn" id="btn-filter-a" onclick="applyFilter('A')">Deck A</button>
+                    <button class="filter-btn" id="btn-filter-b" onclick="applyFilter('B')">Deck B</button>
+                    <button class="filter-btn" id="btn-filter-d" onclick="applyFilter('D')">All Tracks</button>
+                </div>
+
+                <input type="text" class="search-box" id="search-input" placeholder="Search artist, song, or album..." oninput="handleSearch()">
+            </div>
+
+            <div class="crates-grid" id="crates-container">
+                <!-- Dynamically populated from /api/crates -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div>
+            <span class="terminal-bullet">●</span>
+            <span id="footer-ticker">ATLANTIS INSTANCE: did:atlantis:home_node_primary • Club Fortress Sanctuary • Nautilus Digital Twin</span>
+        </div>
+        <div id="footer-listeners">Active Web Listeners: 0</div>
+    </footer>
+
+    <script>
+        let allTracks = [];
+        let filteredTracks = [];
+        let currentFilter = 'LIKED';
+        let deckATrack = null;
+        let deckBTrack = null;
+        let isUserDraggingFader = false;
+        let autoDissolveInterval = null;
+
+        const audioPlayer = document.getElementById('live-stream-audio');
+        const tuneBtn = document.getElementById('btn-master-tune');
+        const eqBars = document.getElementById('master-eq');
+        const tuneLabel = document.getElementById('master-tune-label');
+        const volSlider = document.getElementById('master-vol');
+        const crossfaderSlider = document.getElementById('deck-crossfader');
+
+        volSlider.addEventListener('input', (e) => {
+            audioPlayer.volume = parseFloat(e.target.value);
+        });
+
+        /* --- REAL WEB AUDIO API SPECTRUM ANALYZER --- */
+        let audioCtx = null;
+        let analyserNode = null;
+        let audioSourceNode = null;
+        let animFrameId = null;
+
+        function initWebAudioVisualizer() {
+            if (audioCtx) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                analyserNode = audioCtx.createAnalyser();
+                analyserNode.fftSize = 64;
+                analyserNode.smoothingTimeConstant = 0.8;
+                audioSourceNode = audioCtx.createMediaElementSource(audioPlayer);
+                audioSourceNode.connect(analyserNode);
+                analyserNode.connect(audioCtx.destination);
+                tuneBtn.classList.add('has-analyser');
+                startSpectrumRenderLoop();
+            } catch (e) {
+                console.warn("Web Audio API visualizer init fallback:", e);
+            }
+        }
+
+        function startSpectrumRenderLoop() {
+            if (!analyserNode) return;
+            const freqData = new Uint8Array(analyserNode.frequencyBinCount);
+            const bars = document.querySelectorAll('#master-eq .eq-bar');
+
+            function render() {
+                animFrameId = requestAnimationFrame(render);
+                if (!userWantsPlayback || audioPlayer.paused) {
+                    bars.forEach(b => { b.style.height = '3px'; });
+                    return;
+                }
+
+                analyserNode.getByteFrequencyData(freqData);
+
+                // Sub-bass & Bass: bins 1-3
+                const bass = (freqData[1] + freqData[2] + freqData[3]) / 3;
+                // Low-mid: bins 4-7
+                const lowMid = (freqData[4] + freqData[5] + freqData[6] + freqData[7]) / 4;
+                // Mid-high: bins 8-15
+                const midHigh = (freqData[8] + freqData[10] + freqData[12] + freqData[14]) / 4;
+                // High treble: bins 16-24
+                const treble = (freqData[16] + freqData[18] + freqData[20] + freqData[22]) / 4;
+
+                const bands = [bass, lowMid, midHigh, treble];
+                bars.forEach((bar, i) => {
+                    const h = Math.max(3, Math.min(14, 3 + (bands[i] / 255) * 11));
+                    bar.style.height = `${h}px`;
+                });
+
+                // Platter bass glow effect
+                const activeVinyl = document.querySelector('.active-deck .vinyl-platter');
+                if (activeVinyl) {
+                    if (bass > 50) {
+                        const glowRadius = Math.min(22, 6 + (bass / 255) * 16);
+                        activeVinyl.style.filter = `drop-shadow(0 0 ${glowRadius}px rgba(0, 229, 255, 0.45))`;
+                    } else {
+                        activeVinyl.style.filter = 'none';
+                    }
+                }
+            }
+            render();
+        }
+
+        /* --- MEDIA SESSION API (CARPLAY, ANDROID, LOCKSCREEN) --- */
+        function updateMediaSession(np, match) {
+            if (!('mediaSession' in navigator) || !np || !np.title) return;
+            try {
+                const coverUrl = (match && match.cover_url) ? match.cover_url : 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ccdddd46119a4ff53eaf1f5d';
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: np.title,
+                    artist: np.artist || 'Cyan Network',
+                    album: 'Theater 24/7 • 8080 Live Radio',
+                    artwork: [
+                        { src: coverUrl, sizes: '96x96', type: 'image/jpeg' },
+                        { src: coverUrl, sizes: '128x128', type: 'image/jpeg' },
+                        { src: coverUrl, sizes: '256x256', type: 'image/jpeg' },
+                        { src: coverUrl, sizes: '512x512', type: 'image/jpeg' }
+                    ]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => {
+                    if (!userWantsPlayback) toggleMasterAudio();
+                });
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    if (userWantsPlayback) toggleMasterAudio();
+                });
+                navigator.mediaSession.setActionHandler('stop', () => {
+                    if (userWantsPlayback) toggleMasterAudio();
+                });
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    fadeToDeck('B');
+                });
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    fadeToDeck('A');
+                });
+            } catch (e) {
+                console.warn("MediaSession update error:", e);
+            }
+        }
+
+        /* --- ROBUST LIVE STREAM CLIENT WITH SUSPEND / SLEEP AUTO-RECOVERY --- */
+        let isPlayPending = false;
+        let userWantsPlayback = false;
+        let reconnectTimeout = null;
+
+        function startLiveAudio() {
+            userWantsPlayback = true;
+            tuneLabel.innerText = "CONNECTING...";
+            tuneBtn.classList.add('playing');
+
+            // Initialize Web Audio API visualizer on user gesture
+            if (!audioCtx) {
+                initWebAudioVisualizer();
+            } else if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            // Cache-busting URL forces the browser to open a fresh TCP chunk stream at the live head
+            audioPlayer.src = '/live.mp3?t=' + Date.now();
+            audioPlayer.load();
+            isPlayPending = true;
+
+            audioPlayer.play().then(() => {
+                isPlayPending = false;
+                if (!userWantsPlayback) {
+                    audioPlayer.pause();
+                    audioPlayer.removeAttribute('src');
+                    audioPlayer.load();
+                    tuneBtn.classList.remove('playing');
+                    tuneLabel.innerText = "TUNE IN LIVE";
+                    return;
+                }
+                tuneBtn.classList.add('playing');
+                tuneLabel.innerText = "STREAMING LIVE";
+            }).catch(err => {
+                isPlayPending = false;
+                if (err.name === 'AbortError') {
+                    // Safe suppression: user paused or switched stream before initial play resolved
+                    return;
+                }
+                console.warn("Live stream play error:", err);
+                if (userWantsPlayback) {
+                    scheduleReconnect(1500);
+                } else {
+                    tuneBtn.classList.remove('playing');
+                    tuneLabel.innerText = "TUNE IN LIVE";
+                }
+            });
+        }
+
+        function stopLiveAudio() {
+            userWantsPlayback = false;
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+                reconnectTimeout = null;
+            }
+            tuneBtn.classList.remove('playing');
+            tuneLabel.innerText = "TUNE IN LIVE";
+
+            if (audioCtx && audioCtx.state === 'running') {
+                audioCtx.suspend();
+            }
+
+            if (isPlayPending) {
+                audioPlayer.addEventListener('playing', () => {
+                    if (!userWantsPlayback) {
+                        audioPlayer.pause();
+                        audioPlayer.removeAttribute('src');
+                        audioPlayer.load();
+                    }
+                }, { once: true });
+            } else {
+                audioPlayer.pause();
+                audioPlayer.removeAttribute('src');
+                audioPlayer.load();
+            }
+        }
+
+        function toggleMasterAudio() {
+            if (userWantsPlayback || (!audioPlayer.paused && audioPlayer.src)) {
+                stopLiveAudio();
+            } else {
+                startLiveAudio();
+            }
+        }
+
+        function scheduleReconnect(delayMs = 1000) {
+            if (!userWantsPlayback) return;
+            if (reconnectTimeout) clearTimeout(reconnectTimeout);
+            tuneLabel.innerText = "RECONNECTING...";
+            reconnectTimeout = setTimeout(() => {
+                if (!userWantsPlayback) return;
+                console.log("Reconnecting to live radio stream...");
+                audioPlayer.src = '/live.mp3?t=' + Date.now();
+                audioPlayer.load();
+                isPlayPending = true;
+                audioPlayer.play().then(() => {
+                    isPlayPending = false;
+                    tuneBtn.classList.add('playing');
+                    tuneLabel.innerText = "STREAMING LIVE";
+                }).catch(err => {
+                    isPlayPending = false;
+                    if (err.name !== 'AbortError' && userWantsPlayback) {
+                        scheduleReconnect(2000);
+                    }
+                });
+            }, delayMs);
+        }
+
+        audioPlayer.addEventListener('error', (e) => {
+            console.warn("Audio element error / socket suspended:", audioPlayer.error);
+            if (userWantsPlayback) {
+                scheduleReconnect(1000);
+            }
+        });
+
+        audioPlayer.addEventListener('stalled', () => {
+            if (userWantsPlayback) {
+                console.warn("Audio stream stalled. Recovering live broadcast...");
+                scheduleReconnect(1500);
+            }
+        });
+
+        // Waking from sleep / background tab resume
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && userWantsPlayback) {
+                if (audioPlayer.paused || audioPlayer.readyState < 2) {
+                    console.log("Tab resumed: re-syncing to live broadcast needle.");
+                    scheduleReconnect(300);
+                }
+            }
+        });
+
+        window.addEventListener('online', () => {
+            if (userWantsPlayback) {
+                console.log("Network back online: re-syncing live broadcast.");
+                scheduleReconnect(500);
+            }
+        });
+
+        /* --- CROSSFADER SLIDER LOGIC --- */
+        function onFaderSliderInput(val) {
+            isUserDraggingFader = true;
+            updateFaderUI(parseFloat(val));
+            postCrossfader(parseFloat(val), "MANUAL");
+            setTimeout(() => { isUserDraggingFader = false; }, 1500);
+        }
+
+        function updateFaderUI(pos) {
+            crossfaderSlider.value = pos;
+            const pctB = Math.round(pos * 100);
+            const pctA = 100 - pctB;
+
+            document.getElementById('label-fader-a').innerText = `DECK A (${pctA}%)`;
+            document.getElementById('label-fader-b').innerText = `DECK B (${pctB}%)`;
+            document.getElementById('fader-readout').innerText = `DECK A [${pctA}%] ◄──●──► DECK B [${pctB}%]`;
+
+            document.getElementById('meter-a').innerText = `Deck A Gain: ${(1 - pos).toFixed(2)}`;
+            document.getElementById('meter-b').innerText = `Deck B Gain: ${pos.toFixed(2)}`;
+
+            // Visual deck highlighting
+            document.getElementById('deck-card-a').classList.toggle('active-deck', pos < 0.5);
+            document.getElementById('deck-card-b').classList.toggle('active-deck', pos >= 0.5);
+        }
+
+        async function postCrossfader(pos, mode) {
+            try {
+                await fetch('/api/crossfader', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ position: pos, mode: mode })
+                });
+            } catch(e) {}
+        }
+
+        function fadeToDeck(targetDeck) {
+            if (autoDissolveInterval) clearInterval(autoDissolveInterval);
+            const target = targetDeck === 'A' ? 0.0 : 1.0;
+            animateCrossfade(target, 2000);
+        }
+
+        function triggerAuto10sDissolve() {
+            if (autoDissolveInterval) clearInterval(autoDissolveInterval);
+            const current = parseFloat(crossfaderSlider.value);
+            // Dissolve to the other deck over 10 seconds
+            const target = current < 0.5 ? 1.0 : 0.0;
+            animateCrossfade(target, 10000);
+        }
+
+        function animateCrossfade(targetValue, durationMs) {
+            const startValue = parseFloat(crossfaderSlider.value);
+            const startTime = performance.now();
+            isUserDraggingFader = true;
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1.0, elapsed / durationMs);
+                // Smooth cosine easing
+                const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+                const currentPos = startValue + (targetValue - startValue) * eased;
+
+                updateFaderUI(currentPos);
+
+                if (progress < 1.0) {
+                    requestAnimationFrame(step);
+                } else {
+                    isUserDraggingFader = false;
+                    postCrossfader(targetValue, "AUTO_10S_DISSOLVE");
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        /* --- TELEMETRY & EVENTS --- */
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                if (data.now_playing) {
+                    const np = data.now_playing;
+                    document.getElementById('r-speaker').innerText = np.live_broadcaster || (np.speaker + " (" + np.speaker_role + ")");
+                    document.getElementById('r-weather').innerText = np.weather || "Clear";
+                    
+                    if (np.top_of_hour_countdown !== undefined) {
+                        const mins = Math.floor(np.top_of_hour_countdown / 60);
+                        const secs = np.top_of_hour_countdown % 60;
+                        document.getElementById('r-countdown').innerText = `Quarterly update: ${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+                    }
+
+                    if (np.titan_status) {
+                        document.getElementById('r-chaos-text').innerText = np.titan_status;
+                    }
+
+                    if (np.fortress_room) {
+                        const el = document.getElementById('r-fortress-room');
+                        if (el) el.innerText = np.fortress_room;
+                    }
+                    if (np.sabine_rt60) {
+                        const el = document.getElementById('r-acoustics');
+                        if (el) el.innerText = `Sabine RT₆₀: ${np.sabine_rt60}`;
+                    }
+
+                    document.getElementById('footer-listeners').innerText = `Active Web Listeners: ${data.listeners || 0}`;
+
+                    if (np.news_headline) {
+                        document.getElementById('footer-ticker').innerText = `DISPATCH: ${np.news_headline}`;
+                    }
+
+                    // Comparator Cards
+                    document.getElementById('comp-current-song').innerText = np.title || "Radio Rotation";
+                    document.getElementById('comp-current-deck').innerText = `Active on Deck ${np.active_deck || 'A'} • Fader: ${Math.round((np.fader_position || 0)*100)}%`;
+                    document.getElementById('comp-target-action').innerText = np.target_next_action || "Playing until 10s outro";
+                    document.getElementById('comp-target-sub').innerText = `Next Up: ${np.next_title || 'Lining up...'} on Deck ${np.next_deck || 'B'}`;
+
+                    // Transition Status Badge
+                    const badgeContainer = document.getElementById('comp-status-badge');
+                    if (np.transition_active) {
+                        badgeContainer.innerHTML = `<div class="status-badge-transitioning">🚨 10s SMOOTH CROSSFADE ACTIVE (${np.transition_seconds_left}s)</div>`;
+                        document.getElementById('transition-timer-readout').innerText = `⏳ Outro Dissolve: ${np.transition_seconds_left}s remaining`;
+                    } else {
+                        badgeContainer.innerHTML = `<div class="status-badge-active">● STEADY BROADCASTING</div>`;
+                        document.getElementById('transition-timer-readout').innerText = "";
+                    }
+
+                    // Update slider if user is not manually dragging
+                    if (!isUserDraggingFader && np.fader_position !== undefined) {
+                        updateFaderUI(np.fader_position);
+                    }
+
+                    // Sync Deck A & Deck B metadata from live broadcast
+                    syncTurntableDisplay(np);
+
+                    // Update event log table
+                    if (data.recent_events) {
+                        renderEventTable(data.recent_events);
+                    }
+                }
+            } catch (err) {
+                console.error("Status fetch error:", err);
+            }
+        }
+
+        async function fetchEvents() {
+            try {
+                const res = await fetch('/api/events');
+                const events = await res.json();
+                renderEventTable(events);
+            } catch(e) {}
+        }
+
+        function renderEventTable(events) {
+            const tbody = document.getElementById('event-table-body');
+            tbody.innerHTML = '';
+
+            const list = [...events].reverse().slice(0, 30);
+            list.forEach(evt => {
+                const tr = document.createElement('tr');
+
+                let badgeClass = 'badge-song';
+                if (evt.type === 'OUTRO_TRANSITION') badgeClass = 'badge-outro';
+                else if (evt.type.startsWith('ANNOUNCEMENT')) badgeClass = 'badge-news';
+                else if (evt.type.startsWith('CROSSFADE')) badgeClass = 'badge-fader';
+                else if (evt.type === 'TAKEOVER') badgeClass = 'badge-takeover';
+
+                const detailsText = evt.details ? Object.entries(evt.details).map(([k, v]) => `${k}: ${v}`).join(', ') : '';
+
+                tr.innerHTML = `
+                    <td style="font-family: monospace; color: var(--text-dim);">${evt.timestamp || '--:--:--'}</td>
+                    <td><span class="badge-type ${badgeClass}">${evt.type}</span></td>
+                    <td style="color: var(--cyan); font-weight: 600;">${evt.expected || ''}</td>
+                    <td style="color: var(--text-muted);">${evt.actual || ''}</td>
+                    <td style="font-family: monospace; font-size: 10px; color: var(--text-dim);">${detailsText}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function syncTurntableDisplay(np) {
+            const activeDeck = (np.active_deck || 'A').toLowerCase();
+            const nextDeck = (np.next_deck || (activeDeck === 'a' ? 'b' : 'a')).toLowerCase();
+
+            // Active On-Air Deck Sync
+            if (np.title) {
+                const titleEl = document.getElementById(`deck-${activeDeck}-title`);
+                const artistEl = document.getElementById(`deck-${activeDeck}-artist`);
+                if (titleEl) titleEl.innerText = np.title;
+                if (artistEl) artistEl.innerText = np.artist || "Cyan Network Rotation";
+
+                if (allTracks && allTracks.length > 0) {
+                    const match = allTracks.find(t => 
+                        t.title.toLowerCase().includes(np.title.toLowerCase()) || 
+                        np.title.toLowerCase().includes(t.title.toLowerCase())
+                    );
+                    if (match && match.cover_url) {
+                        const coverEl = document.getElementById(`deck-${activeDeck}-cover`);
+                        const albumEl = document.getElementById(`deck-${activeDeck}-album`);
+                        const bpmEl = document.getElementById(`deck-${activeDeck}-bpm`);
+                        if (coverEl) coverEl.src = match.cover_url;
+                        if (albumEl) albumEl.innerText = (match.album || 'Cyan Master') + ' • ' + (match.source || 'Spotify');
+                        if (bpmEl) bpmEl.innerText = (match.bpm || '124.0') + ' BPM';
+                    }
+                    updateMediaSession(np, match);
+                } else {
+                    updateMediaSession(np, null);
+                }
+            }
+
+            // Cue Standby Deck Sync (Next Track)
+            if (np.next_title) {
+                const nextTitleEl = document.getElementById(`deck-${nextDeck}-title`);
+                const nextArtistEl = document.getElementById(`deck-${nextDeck}-artist`);
+                if (nextTitleEl) nextTitleEl.innerText = np.next_title;
+                if (nextArtistEl) nextArtistEl.innerText = np.next_artist || "Upcoming Rotation";
+
+                if (allTracks && allTracks.length > 0) {
+                    const matchNext = allTracks.find(t => 
+                        t.title.toLowerCase().includes(np.next_title.toLowerCase()) || 
+                        np.next_title.toLowerCase().includes(t.title.toLowerCase())
+                    );
+                    if (matchNext && matchNext.cover_url) {
+                        const nextCoverEl = document.getElementById(`deck-${nextDeck}-cover`);
+                        const nextAlbumEl = document.getElementById(`deck-${nextDeck}-album`);
+                        const nextBpmEl = document.getElementById(`deck-${nextDeck}-bpm`);
+                        if (nextCoverEl) nextCoverEl.src = matchNext.cover_url;
+                        if (nextAlbumEl) nextAlbumEl.innerText = (matchNext.album || 'Upcoming Single') + ' • ' + (matchNext.source || 'Crate');
+                        if (nextBpmEl) nextBpmEl.innerText = (matchNext.bpm || '124.0') + ' BPM';
+                    }
+                }
+            }
+        }
+
+        async function loadCrates() {
+            try {
+                const res = await fetch('/api/crates');
+                allTracks = await res.json();
+                document.getElementById('track-count-badge').innerText = `(${allTracks.length} Tracks)`;
+                
+                if (allTracks.length > 0) cueDeck('A', allTracks[0]);
+                if (allTracks.length > 1) cueDeck('B', allTracks[1]);
+
+                applyFilter(currentFilter);
+            } catch (err) {
+                console.error("Crates load error:", err);
+            }
+        }
+
+        function cueDeck(deck, track) {
+            if (deck === 'A') {
+                deckATrack = track;
+                document.getElementById('deck-a-title').innerText = track.title;
+                document.getElementById('deck-a-artist').innerText = track.artist;
+                document.getElementById('deck-a-album').innerText = (track.album || 'Vinyl Single') + ' • ' + (track.source || 'Master');
+                document.getElementById('deck-a-bpm').innerText = (track.bpm || '124.0') + ' BPM';
+                if (track.cover_url) document.getElementById('deck-a-cover').src = track.cover_url;
+                document.getElementById('vinyl-a').classList.add('spinning');
+                document.getElementById('tonearm-a').classList.add('engaged');
+            } else {
+                deckBTrack = track;
+                document.getElementById('deck-b-title').innerText = track.title;
+                document.getElementById('deck-b-artist').innerText = track.artist;
+                document.getElementById('deck-b-album').innerText = (track.album || 'Vinyl Single') + ' • ' + (track.source || 'Master');
+                document.getElementById('deck-b-bpm').innerText = (track.bpm || '124.0') + ' BPM';
+                if (track.cover_url) document.getElementById('deck-b-cover').src = track.cover_url;
+                document.getElementById('vinyl-b').classList.add('spinning');
+                document.getElementById('tonearm-b').classList.add('engaged');
+            }
+        }
+
+        async function takeoverBroadcast(deck) {
+            const track = deck === 'A' ? deckATrack : deckBTrack;
+            if (!track) return;
+
+            try {
+                const res = await fetch('/api/control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'takeover',
+                        title: track.title,
+                        artist: track.artist,
+                        next_title: deck === 'A' ? (deckBTrack ? deckBTrack.title : 'Next Rotation') : (deckATrack ? deckATrack.title : 'Next Rotation'),
+                        next_artist: deck === 'A' ? (deckBTrack ? deckBTrack.artist : 'Station') : (deckATrack ? deckATrack.artist : 'Station'),
+                        source: `VINYL_DECK_${deck}`,
+                        speaker: `Deck ${deck} Master`
+                    })
+                });
+                const result = await res.json();
+                console.log("Broadcast takeover active:", result);
+
+                // Set crossfader to the active deck
+                fadeToDeck(deck);
+                fetchStatus();
+            } catch (err) {
+                console.error("Takeover error:", err);
+            }
+        }
+
+        function openSpotify(deck) {
+            const track = deck === 'A' ? deckATrack : deckBTrack;
+            if (track && track.spotify_url) {
+                window.open(track.spotify_url, '_blank');
+            }
+        }
+
+        function applyFilter(option) {
+            currentFilter = option;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (option === 'LIKED') {
+                const btn = document.getElementById('btn-filter-liked');
+                if (btn) btn.classList.add('active');
+                filteredTracks = allTracks.filter(t => (t.source && t.source.includes('Liked')) || t.album === 'Spotify Liked Songs');
+                if (filteredTracks.length === 0) filteredTracks = allTracks.slice(0, 40);
+            } else if (option === 'A') {
+                const btn = document.getElementById('btn-filter-a');
+                if (btn) btn.classList.add('active');
+                filteredTracks = deckATrack ? [deckATrack] : allTracks.slice(0, 10);
+            } else if (option === 'B') {
+                const btn = document.getElementById('btn-filter-b');
+                if (btn) btn.classList.add('active');
+                filteredTracks = deckBTrack ? [deckBTrack] : allTracks.slice(10, 20);
+            } else if (option === 'C') {
+                const btn = document.getElementById('btn-filter-c');
+                if (btn) btn.classList.add('active');
+                filteredTracks = allTracks.filter(t => t.spotify_id || t.spotify_url);
+            } else {
+                const btn = document.getElementById('btn-filter-d');
+                if (btn) btn.classList.add('active');
+                filteredTracks = [...allTracks];
+            }
+            renderCrates(filteredTracks);
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            if (!query) {
+                renderCrates(filteredTracks);
+                return;
+            }
+            const results = allTracks.filter(t => 
+                (t.title && t.title.toLowerCase().includes(query)) ||
+                (t.artist && t.artist.toLowerCase().includes(query)) ||
+                (t.album && t.album.toLowerCase().includes(query))
+            );
+            renderCrates(results);
+        }
+
+        function renderCrates(tracks) {
+            const container = document.getElementById('crates-container');
+            container.innerHTML = '';
+
+            tracks.slice(0, 80).forEach((t, idx) => {
+                const card = document.createElement('div');
+                card.className = 'track-card';
+
+                const coverUrl = t.cover_url || 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ccdddd46119a4ff53eaf1f5d';
+
+                card.innerHTML = `
+                    <img class="track-cover" src="${coverUrl}" alt="Cover" loading="lazy">
+                    <div class="track-details">
+                        <div class="track-name" title="${t.title}">${t.title}</div>
+                        <div class="track-sub">${t.artist}</div>
+                        <div class="track-badges">
+                            <span class="badge-bpm">${t.bpm || '124.0'} BPM</span>
+                        </div>
+                        <div class="track-buttons">
+                            <button class="mini-btn" onclick="cueTrack('A', ${idx})">Cue A</button>
+                            <button class="mini-btn" onclick="cueTrack('B', ${idx})">Cue B</button>
+                            <button class="mini-btn spin-now" onclick="spinTrackNow(${idx})">⚡ Spin On-Air</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function cueTrack(deck, idx) {
+            const track = (document.getElementById('search-input').value ? allTracks : filteredTracks)[idx];
+            if (track) {
+                cueDeck(deck, track);
+                try {
+                    await fetch('/api/control', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'cue',
+                            title: track.title,
+                            artist: track.artist,
+                            deck: deck
+                        })
+                    });
+                } catch(e) {}
+            }
+        }
+
+        function spinTrackNow(idx) {
+            const track = (document.getElementById('search-input').value ? allTracks : filteredTracks)[idx];
+            if (track) {
+                cueDeck('A', track);
+                takeoverBroadcast('A');
+            }
+        }
+
+        // Periodic telemetry polling
+        setInterval(fetchStatus, 2000);
+        fetchStatus();
+        loadCrates();
+    </script>
+</body>
+</html>

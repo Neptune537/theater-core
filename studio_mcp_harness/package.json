@@ -1,0 +1,13 @@
+{
+  "name": "studio-mcp-harness",
+  "version": "1.0.0",
+  "description": "MCP Bridge Server for Blender, FL Studio, and Fluorescent Engine",
+  "main": "server.js",
+  "type": "module",
+  "bin": {
+    "studio-mcp": "./server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0"
+  }
+}

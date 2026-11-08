@@ -1,0 +1,8 @@
+ingress:
+  - hostname: radio.tr7n7t7.com
+    path: ^/ws/sonar$
+    service: http://127.0.0.1:8086
+  - hostname: radio.tr7n7t7.com
+    path: ^/live[.]mp3$
+    service: http://127.0.0.1:8082
+  - service: http_status:404

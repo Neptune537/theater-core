@@ -1,0 +1,15 @@
+[Unit]
+Description=Seven Daughters live radio
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/siren-radio
+ExecStart=%h/siren-radio/.venv/bin/python %h/siren-radio/radio_streamer/stream_server.py
+Environment=STREAM_BIND=127.0.0.1
+Environment=STREAM_PORT=8082
+Restart=on-failure
+RestartSec=5
+UMask=0077
+
+[Install]
+WantedBy=default.target

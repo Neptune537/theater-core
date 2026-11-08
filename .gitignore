@@ -7,3 +7,6 @@ logs/
 node_modules/
 _archived_flutter_legacy/
 broadcast_engine/audio_output/
+marketing_output/
+*.mp3
+*.wav

@@ -1,0 +1,16 @@
+[Unit]
+Description=Atlantis read-only signed radio telemetry
+After=network-online.target siren-radio.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/siren-radio/.venv/bin/python %h/siren-radio/radio_streamer/sonar_telemetry.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=default.target
