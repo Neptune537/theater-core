@@ -624,61 +624,10 @@
     }
   </style>
 
-  <!-- Firebase App & Google Auth SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  <!-- Shared verified Google / Home Node account flow -->
+  <script src="platform-auth.js?v=20261111-fedcm"></script>
+  <script defer src="portal-auth.js?v=20261111-lite"></script>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDJmTLmLCcxDEGI8kAeGzO91jtZq5Avhog",
-      authDomain: "heavenlysent-680ac.firebaseapp.com",
-      projectId: "heavenlysent-680ac",
-      storageBucket: "heavenlysent-680ac.appspot.com",
-      messagingSenderId: "367351336440",
-      appId: "1:367351336440:web:12bf1b7b2512f7a9341459"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    const signedOutEl = document.getElementById("signed-out-view");
-    const signedInEl = document.getElementById("signed-in-view");
-    const loginBtn = document.getElementById("google-login-btn");
-    const signoutBtn = document.getElementById("signout-btn");
-    const userAvatarEl = document.getElementById("user-avatar");
-    const userNameEl = document.getElementById("user-name");
-    const userEmailEl = document.getElementById("user-email");
-
-    loginBtn.addEventListener("click", async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        console.error("Auth sign-in error:", err);
-      }
-    });
-
-    signoutBtn.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (err) {
-        console.error("Auth sign-out error:", err);
-      }
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        signedOutEl.style.display = "none";
-        signedInEl.style.display = "block";
-        userAvatarEl.src = user.photoURL || "https://www.gravatar.com/avatar/?d=mp";
-        userNameEl.textContent = user.displayName || "Authorized User";
-        userEmailEl.textContent = user.email || "";
-      } else {
-        signedInEl.style.display = "none";
-        signedOutEl.style.display = "block";
-      }
-    });
-  </script>
 </head>
 <body>
 
@@ -725,7 +674,7 @@
 
       <div class="nav-group-title">Live Client Portals</div>
       <nav class="sidebar-nav">
-        <a href="/game.html" target="_blank" style="color: var(--cyan);">
+        <a href="https://play.tr7n7t7.com/?venue=atlantis" target="_blank" style="color: var(--cyan);">
           <span class="icon">🎮</span>
           <span>3D WebGPU World</span>
           <span class="badge-tag" style="background: rgba(0,242,254,0.15); color: var(--cyan);">WEBGPU</span>
@@ -787,7 +736,7 @@
         <a href="#p2p" class="btn btn-primary">🚀 Deploy P2P Startup</a>
         <a href="#enterprise" class="btn btn-outline">🏢 Enterprise Solutions</a>
         <a href="#government" class="btn btn-outline">🏛️ Government / Defense</a>
-        <a href="/game.html" class="btn btn-outline">🎮 Launch 3D World</a>
+        <a href="https://play.tr7n7t7.com/?venue=atlantis" class="btn btn-outline">🎮 Launch 3D World</a>
       </div>
     </section>
 

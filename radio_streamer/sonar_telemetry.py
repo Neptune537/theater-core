@@ -2,6 +2,7 @@
 import contextlib
 import json
 import logging
+import math
 import os
 from pathlib import Path
 import time
@@ -17,8 +18,20 @@ DID = "did:atlantis:seed-radio"
 ALLOWED_ORIGINS = {
     "https://heavenlysent-680ac.web.app", "https://heavenlysent-680ac.firebaseapp.com",
     "https://heavenlysent-lite-680ac.web.app", "https://heavenlysent-lite-680ac.firebaseapp.com",
-    "https://tr7n7t7.com", "https://www.tr7n7t7.com",
+    "https://tr7n7t7.com", "https://www.tr7n7t7.com", "https://heavenlybound-lite.pages.dev",
+    "https://play.tr7n7t7.com", "https://lite.tr7n7t7.com",
 }
+
+
+def wgs84_ecef(lat_deg, lon_deg, alt_meters):
+    latitude, longitude = math.radians(lat_deg), math.radians(lon_deg)
+    sin_lat, cos_lat = math.sin(latitude), math.cos(latitude)
+    semi_major = 6378137.0
+    eccentricity_squared = 1.0 / 298.257223563 * (2.0 - 1.0 / 298.257223563)
+    normal = semi_major / math.sqrt(1.0 - eccentricity_squared * sin_lat * sin_lat)
+    return [(normal + alt_meters) * cos_lat * math.cos(longitude),
+            (normal + alt_meters) * cos_lat * math.sin(longitude),
+            (normal * (1.0 - eccentricity_squared) + alt_meters) * sin_lat]
 
 
 def load_identity(directory):
@@ -48,7 +61,7 @@ def signed_station_event(status, key, now_ms):
         "entity_id": "seven-daughters", "callsign": "Atlantis · Seven Daughters radio",
         "layer": "SdrSirenRadio",
         "geo": {"lat_deg": 29.614699, "lon_deg": -95.19318, "alt_meters": 0.0},
-        "ecef": [0.0, 0.0, 0.0], "heading_deg": 0.0, "pitch_deg": 0.0, "speed_mps": 0.0,
+        "ecef": wgs84_ecef(29.614699, -95.19318, 0.0), "heading_deg": 0.0, "pitch_deg": 0.0, "speed_mps": 0.0,
         "telemetry": {"SdrRadioStation": {
             "frequency_mhz": 0.0, "modulation": "HTTPS MP3",
             "active_daughter_or_op": str(daughter)[:120], "sabine_rt60_sec": 0.0,
@@ -64,74 +77,53 @@ def signed_station_event(status, key, now_ms):
     }
 
 
-def signed_trading_guild_event(key, now_ms):
-    """Emits live Solana quant trading & VR Guild Marketplace beacon."""
-    entity = {
-        "entity_id": "solana-charter-trading",
-        "callsign": "Team 7 · Solana Quantum Escrow",
-        "layer": "VrGuildMarketplace",
-        "geo": {"lat_deg": 35.6595, "lon_deg": 139.7005, "alt_meters": 35.0},
-        "ecef": [0.0, 0.0, 0.0], "heading_deg": 90.0, "pitch_deg": 0.0, "speed_mps": 0.0,
-        "telemetry": {"VrGuildContract": {
-            "guild_did": "did:atlantis:guild-house-tide",
-            "guild_house": "House Tide (Olympus Seed)",
-            "contract_type": "Solana Jupiter Momentum Arbitrage & Escrow",
-            "reward_cyan": 2500.0,
-            "coral_escrow_locked": True,
-            "min_poh_score": 0.65,
-            "webxr_store_url": "https://heavenlysent-680ac.web.app/store/house-tide-escrow?mode=vr"
-        }},
-        "attached_bounty_cyan": 2500.0,
-        "claimed_by_guild_did": "did:atlantis:charter-trader-solana",
-    }
-    message = json.dumps({"source_did": DID, "observed_at_unix_ms": now_ms, "entity": entity},
-                         separators=(",", ":"), ensure_ascii=False)
-    return {
-        "id": f"guild-solana-{now_ms}", "did": DID, "eventType": "MESH_SIGNAL",
-        "payload": {"node_tier": "Abyssal", "message": message},
-        "signature": key.sign(message.encode()).hex(), "timestamp": now_ms // 1000,
-    }
-
-
 def signed_opensky_flight_event(plane_state, key, now_ms):
     """Emits live Aviation ADS-B telemetry for Cockpit Ride-Along."""
     # OpenSky schema: [icao24, callsign, origin_country, time_pos, last_contact, lon, lat, baro_alt, on_ground, vel, true_track, vert_rate, ...]
     try:
         icao24 = str(plane_state[0]).strip().lower()
         callsign = str(plane_state[1] or icao24).strip()
+        position_time = int(plane_state[3])
+        if not 0 <= now_ms / 1000 - position_time < 30:
+            return None
         lon = float(plane_state[5])
         lat = float(plane_state[6])
-        alt = float(plane_state[7] or 3000.0)
-        speed = float(plane_state[9] or 180.0)
-        heading = float(plane_state[10] or 0.0)
-        vert_rate = float(plane_state[11] or 0.0)
+        alt = float(plane_state[7])
+        speed = float(plane_state[9])
+        heading = float(plane_state[10])
+        vert_rate = float(plane_state[11])
+        if not all(map(math.isfinite, (lon, lat, alt, speed, heading, vert_rate))):
+            return None
+        if not -90 <= lat <= 90 or not -180 <= lon <= 180 or speed < 0:
+            return None
+        observed_ms = position_time * 1000
 
         entity = {
             "entity_id": f"flight-{icao24}",
             "callsign": f"FLIGHT {callsign}",
             "layer": "AviationAdsB",
             "geo": {"lat_deg": lat, "lon_deg": lon, "alt_meters": alt},
-            "ecef": [0.0, 0.0, 0.0],
+            "ecef": wgs84_ecef(lat, lon, alt),
             "heading_deg": heading,
             "pitch_deg": 0.0,
             "speed_mps": speed,
             "telemetry": {"AircraftFlight": {
                 "icao24_hex": icao24,
-                "origin_airport": "Live ADS-B",
-                "dest_airport": "In-Flight Route",
+                "origin_airport": "",
+                "dest_airport": "",
                 "mach_or_knots": round(speed * 1.94384, 1),
                 "vertical_rate_fpm": round(vert_rate * 196.85, 1),
-                "squawk": str(plane_state[14] or "1200")
+                "squawk": str(plane_state[14] or "")
             }},
-            "attached_bounty_cyan": 750.0,
+            "attached_bounty_cyan": 0.0,
             "claimed_by_guild_did": None
         }
-        message = json.dumps({"source_did": DID, "observed_at_unix_ms": now_ms, "entity": entity},
+        message = json.dumps({"source_did": DID, "observed_at_unix_ms": observed_ms, "entity": entity},
                              separators=(",", ":"), ensure_ascii=False)
         return {
-            "id": f"flight-{icao24}-{now_ms}", "did": DID, "eventType": "MESH_SIGNAL",
+            "id": f"flight-{icao24}-{observed_ms}", "did": DID, "eventType": "MESH_SIGNAL",
             "payload": {"node_tier": "Epipelagic", "message": message},
-            "signature": key.sign(message.encode()).hex(), "timestamp": now_ms // 1000,
+            "signature": key.sign(message.encode()).hex(), "timestamp": position_time,
         }
     except Exception:
         return None
@@ -196,7 +188,6 @@ async def broadcast_event(app, event):
 
 async def publish_telemetry(app):
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4)) as session:
-        cycle_counter = 0
         cached_flights = []
         last_flight_fetch = 0
 
@@ -215,16 +206,7 @@ async def publish_telemetry(app):
             except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, TypeError) as error:
                 logging.warning("Station telemetry poll failed (%s)", type(error).__name__)
 
-            # 2. Publish Quant Trading Guild Beacon (VrGuildMarketplace) every 10 seconds
-            if cycle_counter % 2 == 0:
-                try:
-                    guild_event = signed_trading_guild_event(app["signing_key"], now_ms)
-                    if guild_event:
-                        await broadcast_event(app, guild_event)
-                except Exception as error:
-                    logging.warning("Trading guild telemetry failed (%s)", type(error).__name__)
-
-            # 3. Publish Live OpenSky ADS-B Flights (AviationAdsB)
+            # 2. Publish Live OpenSky ADS-B Flights (AviationAdsB)
             # Poll OpenSky every 25 seconds to respect rate limits
             if now - last_flight_fetch >= 25.0:
                 try:
@@ -242,7 +224,6 @@ async def publish_telemetry(app):
                 if flight_event:
                     await broadcast_event(app, flight_event)
 
-            cycle_counter += 1
             await asyncio.sleep(5)
 
 

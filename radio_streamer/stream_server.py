@@ -645,6 +645,20 @@ async def broadcast_loop():
             )
 
             with open(current_track_path, "rb") as f:
+                # Skip ID3v2 header if present so mid-stream MP3 concatenation doesn't stall the browser decoder
+                header = f.read(10)
+                if len(header) == 10 and header[:3] == b"ID3":
+                    tag_size = (
+                        ((header[6] & 0x7F) << 21)
+                        | ((header[7] & 0x7F) << 14)
+                        | ((header[8] & 0x7F) << 7)
+                        | (header[9] & 0x7F)
+                    )
+                    f.seek(10 + tag_size)
+                    bytes_streamed = 10 + tag_size
+                else:
+                    f.seek(0)
+
                 while bytes_streamed < cutoff_bytes:
                     chunk = f.read(4096)
                     if not chunk:
@@ -693,7 +707,6 @@ async def broadcast_loop():
             await send_radio_alert("Audio Track Playback Error", err_msg, is_critical=True)
 
         track_index = (track_index + 1) % len(music_tracks)
-        await asyncio.sleep(0.5)
 
 async def stream_stall_watchdog_loop():
     """Monitors last_chunk_timestamp and sends an immediate Discord alert if the stream pauses > 15s."""
@@ -923,6 +936,18 @@ async def web_player_handler(request):
             return web.Response(text=f.read(), content_type='text/html')
     return web.Response(text="<h1>Theater 24/7 Console</h1>", content_type='text/html')
 
+async def latest_reel_handler(request):
+    latest_reel = os.path.join(AUDIO_OUTPUT_DIR, "latest_reel.mp4")
+    if not os.path.exists(latest_reel):
+        # Search inside hour_* dirs
+        matches = glob.glob(os.path.join(AUDIO_OUTPUT_DIR, "hour_*", "*_kinetic_reel.mp4"))
+        if matches:
+            matches.sort(key=os.path.getmtime, reverse=True)
+            latest_reel = matches[0]
+    if os.path.exists(latest_reel):
+        return web.FileResponse(latest_reel, headers={'Access-Control-Allow-Origin': '*'})
+    return web.Response(status=404, text="No kinetic reel generated yet.")
+
 async def supervised_broadcast_loop():
     """Restart broadcast_loop if it ever crashes, instead of letting it die silently."""
     import traceback
@@ -953,6 +978,7 @@ async def cleanup_background_tasks(app):
 def create_app():
     app = web.Application()
     app.router.add_get('/', web_player_handler)
+    app.router.add_get('/media/latest_reel.mp4', latest_reel_handler)
     app.router.add_get('/live.mp3', stream_audio_handler)
     app.router.add_route('OPTIONS', '/live.mp3', cors_options_handler)
     app.router.add_get('/api/status', status_api_handler)

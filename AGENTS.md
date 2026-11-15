@@ -82,3 +82,7 @@ This document defines the roles, operational boundaries, tooling, and integratio
    - Always verify bridge availability (`blender_get_scene`, `fl_studio_transport`) before issuing spatial commands to ports 9988 and 9989.
 4. **Zero Dead-Air Guarantee:**
    - If AI incident generation is pending or delayed, Vinyl DJ decks must automatically continue playing ambient music crates.
+
+Auth deployment reviewed 2026-11-11 Chicago: seed Pi zero@10.0.0.60 runs a separate auth-only container on loopback 8087, routed through the apex /api/auth paths. Google client ID and API origin are configured in the shared web clients. The portal Firebase popup was replaced with the Google FedCM button; preserve the game isolation headers. Public negative-auth/CORS checks passed; real Google account/device acceptance remains open, and Sonar still returned 403. See the platform runtime status and Atlantis/deploy/auth_seed_release_20261111.json for the dated record.
+
+Portal flow reviewed 2026-11-11: portal sign-in must open Lite and complete authentication there; keep bearer tokens out of navigation URLs/storage. Legacy /game.html forwards to the current Firebase game. Preserve incremental regional mesh preparation and run the terrain geometry/yield regression after changes. Device and real-account acceptance remain separate from local tests.

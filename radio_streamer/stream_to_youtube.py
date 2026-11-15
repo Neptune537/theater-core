@@ -13,9 +13,10 @@ import time
 import subprocess
 
 STREAM_KEY = os.environ.get("YOUTUBE_STREAM_KEY", "sxj7-8328-16dc-fj8t-8gy0")
-AUDIO_SOURCE = os.environ.get("AUDIO_SOURCE", "http://127.0.0.1:8082/live.mp3")
+# Audio Ingest: Dedicated Voice / News Broadcast Stems (NOT copyrighted radio rotation)
+AUDIO_SOURCE = os.environ.get("AUDIO_SOURCE", r"C:\Users\blue-\projects\theater\broadcast_engine\audio_output\daughters\siren_id_maia_432Hz.mp3")
 RTMP_URL = os.environ.get("RTMP_URL", "rtmp://a.rtmp.youtube.com/live2")
-VIDEO_LOOP = r"C:\Users\blue-\projects\theater\radio_streamer\visual_loop.ts"
+VIDEO_LOOP = os.environ.get("VIDEO_LOOP", r"C:\Users\blue-\projects\theater\radio_streamer\visual_loop.ts")
 
 full_rtmp_target = f"{RTMP_URL}/{STREAM_KEY}"
 

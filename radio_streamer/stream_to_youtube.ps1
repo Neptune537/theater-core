@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Kuroshio Gyre / Theater 24/7 Siren Radio Live Streamer to YouTube.
     Pipes live audio stream to YouTube RTMP with audio-reactive visualizer.
@@ -6,7 +6,8 @@
 
 param(
     [string]$StreamKey = "sxj7-8328-16dc-fj8t-8gy0",
-    [string]$AudioSource = "http://127.0.0.1:8082/live.mp3",
+    # Audio Ingest: Dedicated Voice / News Broadcast Stems (NOT copyrighted radio rotation)
+    [string]$AudioSource = "C:\Users\blue-\projects\theater\broadcast_engine\audio_output\daughters\siren_id_maia_432Hz.mp3",
     [string]$RtmpUrl = "rtmp://a.rtmp.youtube.com/live2"
 )
 

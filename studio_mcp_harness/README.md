@@ -4,6 +4,27 @@ This directory contains the **Studio MCP Harness**, an AI Model Context Protocol
 
 ---
 
+## 4. Video‑Bridge Commands (new)
+
+The Blender MCP bridge now supports a set of high‑level video‑production actions that can be triggered via JSON‑RPC over the TCP port (9988).  Each command is a JSON object with an `action` field and a `params` map.
+
+| Action | Params | Description |
+|--------|--------|-------------|
+| `set_lighting_rig` | `preset: "bright" | "dim" | "default"` | Adjusts the `energy` of **all** lights in the scene to the chosen preset. |
+| `switch_studio_cam` | `camera_name: string` | Switches the active scene camera to the named `Camera` object (must exist in the file). |
+| `apply_vfx_preset` | `vfx_name: string` (optional) | Inserts a placeholder volumetric cube named `VFX_<vfx_name>` into the scene, tagged for later processing. |
+| `mount_actor_avatar` | `actor_name: string`, `gltf_path: string`, `location: [x,y,z]` | Imports a GLTF/GLB avatar, renames its objects with the actor prefix, and places them at the supplied world coordinates. |
+
+**Example request** (set bright lighting):
+```json
+{ "action": "set_lighting_rig", "params": { "preset": "bright" } }
+```
+The bridge responds with a JSON object containing a `status` field (`"success"` or `"error"`) and relevant details.
+
+These commands empower the AI agent to orchestrate lighting, camera angles, visual effects, and avatar placement as part of an automated broadcast workflow.
+
+---
+
 ## Architecture Overview
 
 ```
@@ -27,15 +48,99 @@ This directory contains the **Studio MCP Harness**, an AI Model Context Protocol
 
 ---
 
+## 4. Video‑Bridge Commands (new)
+
+The Blender MCP bridge now supports a set of high‑level video‑production actions that can be triggered via JSON‑RPC over the TCP port (9988).  Each command is a JSON object with an `action` field and a `params` map.
+
+| Action | Params | Description |
+|--------|--------|-------------|
+| `set_lighting_rig` | `preset: "bright" | "dim" | "default"` | Adjusts the `energy` of **all** lights in the scene to the chosen preset. |
+| `switch_studio_cam` | `camera_name: string` | Switches the active scene camera to the named `Camera` object (must exist in the file). |
+| `apply_vfx_preset` | `vfx_name: string` (optional) | Inserts a placeholder volumetric cube named `VFX_<vfx_name>` into the scene, tagged for later processing. |
+| `mount_actor_avatar` | `actor_name: string`, `gltf_path: string`, `location: [x,y,z]` | Imports a GLTF/GLB avatar, renames its objects with the actor prefix, and places them at the supplied world coordinates. |
+
+**Example request** (set bright lighting):
+```json
+{ "action": "set_lighting_rig", "params": { "preset": "bright" } }
+```
+The bridge responds with a JSON object containing a `status` field (`"success"` or `"error"`) and relevant details.
+
+These commands empower the AI agent to orchestrate lighting, camera angles, visual effects, and avatar placement as part of an automated broadcast workflow.
+
+---
+
 ## 1. Features & Tools Exposed via MCP
 
 | Tool Name | What the AI Can Do |
-| :--- | :--- |
+| :---
+
+## 4. Video‑Bridge Commands (new)
+
+The Blender MCP bridge now supports a set of high‑level video‑production actions that can be triggered via JSON‑RPC over the TCP port (9988).  Each command is a JSON object with an `action` field and a `params` map.
+
+| Action | Params | Description |
+|--------|--------|-------------|
+| `set_lighting_rig` | `preset: "bright" | "dim" | "default"` | Adjusts the `energy` of **all** lights in the scene to the chosen preset. |
+| `switch_studio_cam` | `camera_name: string` | Switches the active scene camera to the named `Camera` object (must exist in the file). |
+| `apply_vfx_preset` | `vfx_name: string` (optional) | Inserts a placeholder volumetric cube named `VFX_<vfx_name>` into the scene, tagged for later processing. |
+| `mount_actor_avatar` | `actor_name: string`, `gltf_path: string`, `location: [x,y,z]` | Imports a GLTF/GLB avatar, renames its objects with the actor prefix, and places them at the supplied world coordinates. |
+
+**Example request** (set bright lighting):
+```json
+{ "action": "set_lighting_rig", "params": { "preset": "bright" } }
+```
+The bridge responds with a JSON object containing a `status` field (`"success"` or `"error"`) and relevant details.
+
+These commands empower the AI agent to orchestrate lighting, camera angles, visual effects, and avatar placement as part of an automated broadcast workflow.
+
+--- | :---
+
+## 4. Video‑Bridge Commands (new)
+
+The Blender MCP bridge now supports a set of high‑level video‑production actions that can be triggered via JSON‑RPC over the TCP port (9988).  Each command is a JSON object with an `action` field and a `params` map.
+
+| Action | Params | Description |
+|--------|--------|-------------|
+| `set_lighting_rig` | `preset: "bright" | "dim" | "default"` | Adjusts the `energy` of **all** lights in the scene to the chosen preset. |
+| `switch_studio_cam` | `camera_name: string` | Switches the active scene camera to the named `Camera` object (must exist in the file). |
+| `apply_vfx_preset` | `vfx_name: string` (optional) | Inserts a placeholder volumetric cube named `VFX_<vfx_name>` into the scene, tagged for later processing. |
+| `mount_actor_avatar` | `actor_name: string`, `gltf_path: string`, `location: [x,y,z]` | Imports a GLTF/GLB avatar, renames its objects with the actor prefix, and places them at the supplied world coordinates. |
+
+**Example request** (set bright lighting):
+```json
+{ "action": "set_lighting_rig", "params": { "preset": "bright" } }
+```
+The bridge responds with a JSON object containing a `status` field (`"success"` or `"error"`) and relevant details.
+
+These commands empower the AI agent to orchestrate lighting, camera angles, visual effects, and avatar placement as part of an automated broadcast workflow.
+
+--- |
 | `publish_breaking_news` | Publishes a daily live incident, generates Kenji vs. Dex dialogue, and updates the real-time news ticker. |
 | `get_live_ticker` | Inspects currently active breaking news headlines and script events. |
 | `blender_add_acoustic_emitter`| Places a 3D audio emitter in Blender (tied to Fluorescent acoustics: anchor, instigator, monster roar, sirens). |
 | `blender_get_scene` | Reads scene objects and acoustic material tags (`concrete`, `wood`, `carpet`). |
 | `fl_studio_transport` | Controls playback, stop, and mixer volume tracks in FL Studio. |
+
+---
+
+## 4. Video‑Bridge Commands (new)
+
+The Blender MCP bridge now supports a set of high‑level video‑production actions that can be triggered via JSON‑RPC over the TCP port (9988).  Each command is a JSON object with an `action` field and a `params` map.
+
+| Action | Params | Description |
+|--------|--------|-------------|
+| `set_lighting_rig` | `preset: "bright" | "dim" | "default"` | Adjusts the `energy` of **all** lights in the scene to the chosen preset. |
+| `switch_studio_cam` | `camera_name: string` | Switches the active scene camera to the named `Camera` object (must exist in the file). |
+| `apply_vfx_preset` | `vfx_name: string` (optional) | Inserts a placeholder volumetric cube named `VFX_<vfx_name>` into the scene, tagged for later processing. |
+| `mount_actor_avatar` | `actor_name: string`, `gltf_path: string`, `location: [x,y,z]` | Imports a GLTF/GLB avatar, renames its objects with the actor prefix, and places them at the supplied world coordinates. |
+
+**Example request** (set bright lighting):
+```json
+{ "action": "set_lighting_rig", "params": { "preset": "bright" } }
+```
+The bridge responds with a JSON object containing a `status` field (`"success"` or `"error"`) and relevant details.
+
+These commands empower the AI agent to orchestrate lighting, camera angles, visual effects, and avatar placement as part of an automated broadcast workflow.
 
 ---
 
@@ -71,6 +176,27 @@ Add this to your MCP configuration (`mcp_config.json` or `.gemini/antigravity/mc
   }
 }
 ```
+
+---
+
+## 4. Video‑Bridge Commands (new)
+
+The Blender MCP bridge now supports a set of high‑level video‑production actions that can be triggered via JSON‑RPC over the TCP port (9988).  Each command is a JSON object with an `action` field and a `params` map.
+
+| Action | Params | Description |
+|--------|--------|-------------|
+| `set_lighting_rig` | `preset: "bright" | "dim" | "default"` | Adjusts the `energy` of **all** lights in the scene to the chosen preset. |
+| `switch_studio_cam` | `camera_name: string` | Switches the active scene camera to the named `Camera` object (must exist in the file). |
+| `apply_vfx_preset` | `vfx_name: string` (optional) | Inserts a placeholder volumetric cube named `VFX_<vfx_name>` into the scene, tagged for later processing. |
+| `mount_actor_avatar` | `actor_name: string`, `gltf_path: string`, `location: [x,y,z]` | Imports a GLTF/GLB avatar, renames its objects with the actor prefix, and places them at the supplied world coordinates. |
+
+**Example request** (set bright lighting):
+```json
+{ "action": "set_lighting_rig", "params": { "preset": "bright" } }
+```
+The bridge responds with a JSON object containing a `status` field (`"success"` or `"error"`) and relevant details.
+
+These commands empower the AI agent to orchestrate lighting, camera angles, visual effects, and avatar placement as part of an automated broadcast workflow.
 
 ---
 
