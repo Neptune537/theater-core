@@ -622,6 +622,43 @@
         padding: 2rem 1.5rem;
       }
     }
+
+    #tr7n7y7-office-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #07090e;
+      display: none;
+      flex-direction: column;
+    }
+    #tr7n7y7-office-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(11, 15, 25, 0.96);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+    }
+    #tr7n7y7-office-bar button, #tr7n7y7-office-bar a {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(18, 22, 34, 0.9);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+    #tr7n7y7-office-frame {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #090c14;
+    }
   </style>
 
   <!-- Shared verified Google / Home Node account flow -->
@@ -674,6 +711,25 @@
 
       <div class="nav-group-title">Live Client Portals</div>
       <nav class="sidebar-nav">
+        <a href="office.html#office" onclick="event.preventDefault();openPortalOffice('office');" style="color: var(--cyan);">
+          <span class="icon">🏢</span>
+          <span>tr7n7y7 3D Office</span>
+          <span class="badge-tag" style="background: rgba(0,242,254,0.15); color: var(--cyan);">3D</span>
+        </a>
+        <a href="office.html#studio" onclick="event.preventDefault();openPortalOffice('studio');" style="color: #60a5fa;">
+          <span class="icon">🎨</span>
+          <span>Kuroshio Studio</span>
+          <span class="badge-tag" style="background: rgba(79,172,254,0.18); color: #60a5fa;">AAAA</span>
+        </a>
+        <a href="office.html#blackboard" onclick="event.preventDefault();openPortalOffice('blackboard');" style="color: #c084fc;">
+          <span class="icon">📋</span>
+          <span>Strategy Blackboard</span>
+          <span class="badge-tag" style="background: rgba(139,92,246,0.2); color: #c084fc;">PLAN</span>
+        </a>
+        <a href="https://lite.tr7n7t7.com/" target="_blank">
+          <span class="icon">🛰️</span>
+          <span>HeavenlyBound Lite</span>
+        </a>
         <a href="https://play.tr7n7t7.com/?venue=atlantis" target="_blank" style="color: var(--cyan);">
           <span class="icon">🎮</span>
           <span>3D WebGPU World</span>
@@ -733,7 +789,11 @@
       <h1>Mission-Critical Infrastructure for <br><span class="gradient">Startups, Big Corp & Government</span></h1>
       <p>TR7N7T7 provides zero-egress serverless computing, resilient peer-to-peer data channels, and continuous 24/7 broadcast radio. Engineered to survive WAN partitions and eliminate platform monopolies across all tiers of industry and state.</p>
       <div class="btn-group">
-        <a href="#p2p" class="btn btn-primary">🚀 Deploy P2P Startup</a>
+        <a href="office.html#office" onclick="event.preventDefault();openPortalOffice('office');" class="btn btn-primary">🏢 tr7n7y7 3D Office</a>
+        <a href="office.html#studio" onclick="event.preventDefault();openPortalOffice('studio');" class="btn btn-outline" style="border-color:var(--cyan);color:var(--cyan);">🎨 Kuroshio Studio</a>
+        <a href="office.html#blackboard" onclick="event.preventDefault();openPortalOffice('blackboard');" class="btn btn-outline" style="border-color:var(--purple);color:#e9d5ff;">📋 Strategy Blackboard</a>
+        <a href="https://lite.tr7n7t7.com/" class="btn btn-outline">🛰️ HeavenlyBound Lite</a>
+        <a href="#p2p" class="btn btn-outline">🚀 Deploy P2P Startup</a>
         <a href="#enterprise" class="btn btn-outline">🏢 Enterprise Solutions</a>
         <a href="#government" class="btn btn-outline">🏛️ Government / Defense</a>
         <a href="https://play.tr7n7t7.com/?venue=atlantis" class="btn btn-outline">🎮 Launch 3D World</a>
@@ -914,6 +974,58 @@
     </footer>
 
   </main>
+
+  <div id="tr7n7y7-office-modal" aria-label="tr7n7y7 3D Office and Kuroshio Studio">
+    <div id="tr7n7y7-office-bar">
+      <strong style="color:var(--cyan);font-family:var(--font-mono);font-size:0.82rem;">tr7n7y7 // KUROSHIO STUDIO</strong>
+      <button type="button" onclick="openPortalOffice('office')">🏢 3D Office</button>
+      <button type="button" style="border-color:var(--cyan);color:var(--cyan);" onclick="openPortalOffice('studio')">🎨 Kuroshio Studio</button>
+      <button type="button" style="border-color:var(--purple);color:#e9d5ff;" onclick="openPortalOffice('blackboard')">📋 Strategy Blackboard</button>
+      <span style="flex:1;"></span>
+      <a id="tr7n7y7-office-ext" href="https://lite.tr7n7t7.com/office.html" target="_blank" rel="noopener">Open in New Tab ↗</a>
+      <button type="button" onclick="closePortalOffice()">✕ Close</button>
+    </div>
+    <iframe id="tr7n7y7-office-frame" title="tr7n7y7 3D Office and Kuroshio Studio"></iframe>
+  </div>
+
+  <script>
+    let _portalOfficeBase = null;
+    async function resolveOfficeBase() {
+      if (_portalOfficeBase) return _portalOfficeBase;
+      try {
+        const r = await fetch('office.html', { method: 'HEAD' });
+        _portalOfficeBase = r.ok ? 'office.html' : 'https://lite.tr7n7t7.com/office.html';
+      } catch {
+        _portalOfficeBase = 'https://lite.tr7n7t7.com/office.html';
+      }
+      return _portalOfficeBase;
+    }
+    async function openPortalOffice(section = 'office') {
+      const base = await resolveOfficeBase();
+      const target = `${base}#${section}`;
+      const modal = document.getElementById('tr7n7y7-office-modal');
+      const frame = document.getElementById('tr7n7y7-office-frame');
+      const ext = document.getElementById('tr7n7y7-office-ext');
+      if (ext) ext.href = target;
+      if (frame.getAttribute('data-base') === base) {
+        try {
+          frame.contentWindow.location.hash = '#' + section;
+        } catch {
+          frame.src = target;
+        }
+      } else {
+        frame.src = target;
+        frame.setAttribute('data-base', base);
+      }
+      modal.style.display = 'flex';
+    }
+    function closePortalOffice() {
+      document.getElementById('tr7n7y7-office-modal').style.display = 'none';
+    }
+    if (location.hash === '#studio') openPortalOffice('studio');
+    else if (location.hash === '#blackboard') openPortalOffice('blackboard');
+    else if (location.hash === '#office') openPortalOffice('office');
+  </script>
 
 </body>
 </html>
