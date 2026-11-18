@@ -1347,6 +1347,14 @@
                     <div id="cActivity">Auditing OpenRaft block #144002</div>
                 </div>
 
+                <div class="activity-box" id="cReplyBox" style="border-color:rgba(56,189,248,0.45);background:rgba(10,18,36,0.9);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div class="box-label" style="color:#4ade80;">💬 Agent Response</div>
+                        <button type="button" class="ui-btn" style="padding:2px 7px;font-size:10px;" title="Read response aloud" onclick="speakAgentReply()">🔊 Speak</button>
+                    </div>
+                    <div id="cReply" style="color:#f8fafc;font-size:12.5px;line-height:1.45;margin-top:3px;">Online and ready for instructions.</div>
+                </div>
+
                 <div class="activity-box">
                     <div class="box-label" style="color:var(--accent);">Last Dispatched Directive</div>
                     <div id="cLastDirective" style="color:#cbd5e1;font-style:italic;">None yet</div>
@@ -2469,7 +2477,7 @@
                 // Task/Speech Bubble above character
                 const speechSprite = createSpeechSprite(emp.speech || emp.activity);
                 speechSprite.position.set(0, 2.25, 0);
-                speechSprite.visible = emp.status === 'working' || emp.status === 'waiting';
+                speechSprite.visible = aiBehaviourState.showSpeechBubbles && Boolean(emp.speech || emp.activity);
                 group.add(speechSprite);
 
                 officeGroup.add(group);
@@ -2480,6 +2488,7 @@
                     ring, disc, bulb, speechSprite,
                     data: emp,
                     frozen: false,
+                    talkingUntil: 0,
                     roamIdx: Math.floor(Math.random() * wps.length),
                     roamPauseUntil: 0,
                     waypoints: wps
@@ -2494,7 +2503,7 @@
             empObj.group.remove(empObj.speechSprite);
             empObj.speechSprite = createSpeechSprite(emp.speech || emp.activity);
             empObj.speechSprite.position.set(0, 2.25, 0);
-            empObj.speechSprite.visible = aiBehaviourState.showSpeechBubbles && (emp.status === 'working' || emp.status === 'waiting');
+            empObj.speechSprite.visible = aiBehaviourState.showSpeechBubbles && Boolean(emp.speech || emp.activity);
             empObj.group.add(empObj.speechSprite);
 
             const bulbColor = emp.status === 'working' ? 0x22c55e : (emp.status === 'waiting' ? 0xeab308 : 0x38bdf8);
@@ -2625,6 +2634,7 @@
             document.getElementById('cName').innerText = emp.name;
             document.getElementById('cRole').innerText = emp.role;
             document.getElementById('cActivity').innerText = emp.activity;
+            document.getElementById('cReply').innerText = emp.last_reply || generateLocalAgentReply(empId, 'hello').reply;
             document.getElementById('cNode').innerText = emp.node;
             document.getElementById('cLastDirective').innerText = emp.last_directive || 'None yet';
 
@@ -2640,11 +2650,12 @@
                 statusEl.style.color = 'var(--accent)';
             }
 
-            const locPrefix = emp.status === 'available' ? 'Roaming' : 'At Desk';
+            const locPrefix = (emp.status === 'available' || emp.id === 'echo' || emp.id === 'kraken') ? 'Roaming' : 'At Desk';
             document.getElementById('cLocation').innerText = `${locPrefix} • ${emp.room}`;
             document.getElementById('cMsgInput').placeholder = `Message ${emp.name.replace(' ★', '')}...`;
             document.getElementById('charCard').style.display = 'flex';
             populateOrgTree();
+            setTimeout(() => document.getElementById('cMsgInput')?.focus(), 180);
 
             // Glide camera along current viewing angle to conversation shot
             const p = empObj.group.position;
@@ -2786,42 +2797,25 @@
             }
         }
 
-        function sendInstruction() {
+        async function sendInstruction() {
             const input = document.getElementById('cMsgInput');
             const directive = input.value.trim();
             if (!directive) return;
             const targetId = selectedEmpId || 'triton';
+            input.value = '';
+            await sendAgentDirective(targetId, directive, 'Operator_Workstation');
+        }
 
-            fetch('/api/dispatch', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    target_id: targetId,
-                    directive: directive,
-                    sender: 'Operator_Workstation'
-                })
-            })
-            .then(r => r.json())
-            .then(d => {
-                input.value = '';
-                if (d.workforce) {
-                    WORKFORCE = d.workforce;
-                    if (employees[targetId]) {
-                        employees[targetId].data = WORKFORCE[targetId];
-                        refreshSpeechBubble(targetId);
-                    }
-                    document.getElementById('cActivity').innerText = WORKFORCE[targetId].activity;
-                    document.getElementById('cLastDirective').innerText = WORKFORCE[targetId].last_directive;
-                    document.getElementById('cStatus').innerText = '● WORKING';
-                    document.getElementById('cStatus').style.color = 'var(--green)';
-                    populateOrgTree();
-                }
-                showToast(`Directive dispatched to ${WORKFORCE[targetId].name}`);
-            })
-            .catch(() => {
-                showToast('Dispatch queued');
-                input.value = '';
-            });
+        function speakAgentReply() {
+            const txt = document.getElementById('cReply')?.innerText;
+            if (!txt || !('speechSynthesis' in window)) {
+                showToast('Speech synthesis unavailable in this browser');
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(txt);
+            u.rate = 1.04;
+            window.speechSynthesis.speak(u);
         }
 
         function closeModal() {
@@ -2875,24 +2869,20 @@
                 const pulse = 1.0 + Math.sin(t + emp.desk_pos[0]) * (emp.status === 'waiting' ? 0.22 : 0.10);
                 empObj.ring.scale.setScalar(pulse);
 
-                if (empObj.frozen) {
-                    // Gently look toward camera while selected
-                    empObj.leftArm.rotation.x = 0;
-                    empObj.rightArm.rotation.x = 0;
+                if (empObj.frozen || (empObj.talkingUntil && now < empObj.talkingUntil)) {
+                    // Animated conversational gesture when inspected or actively replying
+                    const isTalking = empObj.talkingUntil && now < empObj.talkingUntil;
+                    empObj.head.rotation.x = Math.sin(t * (isTalking ? 3.2 : 1.1)) * (isTalking ? 0.14 : 0.05);
+                    empObj.head.rotation.y = Math.sin(t * (isTalking ? 1.8 : 0.7)) * 0.16;
+                    empObj.leftArm.rotation.x = isTalking ? -0.35 + Math.sin(t * 2.8) * 0.25 : 0;
+                    empObj.rightArm.rotation.x = isTalking ? -0.55 + Math.cos(t * 2.8) * 0.30 : Math.sin(t * 1.2) * 0.06;
                     empObj.leftLeg.rotation.x = 0;
                     empObj.rightLeg.rotation.x = 0;
                     continue;
                 }
 
-                if (emp.status === 'working') {
-                    // Typing animation at desk
-                    empObj.leftArm.rotation.x = -0.65 + Math.sin(t * 2.5 + emp.desk_pos[2]) * 0.18;
-                    empObj.rightArm.rotation.x = -0.65 + Math.cos(t * 2.5 + emp.desk_pos[0]) * 0.18;
-                    empObj.head.rotation.x = 0.08 + Math.sin(t * 0.8) * 0.05;
-                } else if (emp.status === 'waiting') {
-                    empObj.bulb.visible = Math.floor(t * 1.5) % 2 === 0;
-                    empObj.head.rotation.y = Math.sin(t * 0.6) * 0.25;
-                } else if (emp.status === 'available' && aiBehaviourState.roamingEnabled) {
+                const isRoamer = (emp.id === 'echo' || emp.id === 'kraken' || emp.status === 'available');
+                if (isRoamer && aiBehaviourState.roamingEnabled) {
                     if (now < empObj.roamPauseUntil) {
                         empObj.leftArm.rotation.x = 0;
                         empObj.rightArm.rotation.x = 0;
@@ -2919,6 +2909,14 @@
                             empObj.rightLeg.rotation.x = Math.sin(t * 2.4) * 0.45;
                         }
                     }
+                } else if (emp.status === 'working') {
+                    // Typing animation at desk
+                    empObj.leftArm.rotation.x = -0.65 + Math.sin(t * 2.5 + emp.desk_pos[2]) * 0.18;
+                    empObj.rightArm.rotation.x = -0.65 + Math.cos(t * 2.5 + emp.desk_pos[0]) * 0.18;
+                    empObj.head.rotation.x = 0.08 + Math.sin(t * 0.8) * 0.05;
+                } else if (emp.status === 'waiting') {
+                    empObj.bulb.visible = Math.floor(t * 1.5) % 2 === 0;
+                    empObj.head.rotation.y = Math.sin(t * 0.6) * 0.25;
                 }
             }
 
@@ -4044,11 +4042,40 @@ pub fn boot_tr7n7y7_kuroshio_studio() -> Result<(), Box<dyn std::error::Error>> 
             document.getElementById('infoModal').style.display = 'flex';
         }
 
+        function generateLocalAgentReply(empId, directive) {
+            const clean = (directive || '').trim();
+            const lower = clean.toLowerCase();
+            const emp = WORKFORCE[empId] || { name: empId, role: 'Agent', room: 'tr7n7y7 Floor', node: 'Local Node' };
+            const isRoamer = empId === 'echo' || empId === 'kraken';
+            const isGreeting = lower.includes('how are you') || lower === 'hi' || lower === 'hey' || lower.startsWith('hello') || lower.includes('doing today') || lower.includes("what's up");
+            if (isGreeting) {
+                const reply = empId === 'echo'
+                    ? "Doing great! I'm roaming the tr7n7y7 studio right now working on Kuroshio Studio gizmos, .ply splat assets, and tr7n7t7.com brand design. What should we build next?"
+                    : `Doing great! I'm ${emp.name} (${emp.role}) on ${emp.node}. Let me know what you need!`;
+                return {
+                    reply,
+                    bubble: empId === 'echo' ? 'Doing great! Ready in Studio' : 'Doing great! Online & Ready',
+                    activity: `Online & chat-ready (${emp.role})`,
+                    status: isRoamer ? 'available' : 'working'
+                };
+            }
+            const shortMsg = clean.length > 26 ? `On it: ${clean.slice(0, 20)}...` : `On it: ${clean}`;
+            return {
+                reply: `Copy that — I'm on "${clean}". Applying ${emp.role} expertise on ${emp.node} now.`,
+                bubble: shortMsg,
+                activity: `Executing: ${clean.slice(0, 38)}`,
+                status: isRoamer ? 'available' : 'working'
+            };
+        }
+
         async function sendAgentDirective(targetId, directive, sender = 'Operator_Console') {
             const msg = (directive || '').trim();
             if (!msg) return false;
             const targets = targetId === '__ALL__' ? Object.keys(WORKFORCE) : [targetId];
+            let latestReply = '';
             for (const tid of targets) {
+                const localGen = generateLocalAgentReply(tid, msg);
+                let replyText = localGen.reply;
                 try {
                     const res = await fetch('/api/dispatch', {
                         method: 'POST',
@@ -4058,34 +4085,43 @@ pub fn boot_tr7n7y7_kuroshio_studio() -> Result<(), Box<dyn std::error::Error>> 
                     if (res.ok) {
                         const d = await res.json();
                         if (d.workforce) WORKFORCE = d.workforce;
+                        if (d.reply) replyText = d.reply;
                     } else throw new Error('HTTP ' + res.status);
                 } catch (e) {
                     if (WORKFORCE[tid]) {
                         WORKFORCE[tid].last_directive = msg;
-                        WORKFORCE[tid].activity = 'Executing: ' + msg;
-                        WORKFORCE[tid].speech = msg.length > 26 ? msg.slice(0, 24) + '...' : msg;
-                        WORKFORCE[tid].status = 'working';
+                        WORKFORCE[tid].last_reply = localGen.reply;
+                        WORKFORCE[tid].activity = localGen.activity;
+                        WORKFORCE[tid].speech = localGen.bubble;
+                        WORKFORCE[tid].status = localGen.status;
                     }
                 }
+                latestReply = replyText;
                 if (employees[tid] && WORKFORCE[tid]) {
                     employees[tid].data = WORKFORCE[tid];
+                    employees[tid].talkingUntil = Date.now() + 4500;
                     refreshSpeechBubble(tid);
                 }
                 localChatFeed.push({
                     time: new Date().toLocaleTimeString(),
                     sender,
                     target_id: tid,
-                    text: msg
+                    text: msg,
+                    reply: replyText
                 });
             }
             populateOrgTree();
             if (selectedEmpId && WORKFORCE[selectedEmpId]) {
-                document.getElementById('cActivity').innerText = WORKFORCE[selectedEmpId].activity;
-                document.getElementById('cLastDirective').innerText = WORKFORCE[selectedEmpId].last_directive;
-                document.getElementById('cStatus').innerText = '● WORKING';
-                document.getElementById('cStatus').style.color = 'var(--green)';
+                const sel = WORKFORCE[selectedEmpId];
+                document.getElementById('cActivity').innerText = sel.activity;
+                document.getElementById('cLastDirective').innerText = sel.last_directive;
+                const replyEl = document.getElementById('cReply');
+                if (replyEl) replyEl.innerText = sel.last_reply || latestReply;
+                const stEl = document.getElementById('cStatus');
+                stEl.innerText = sel.status === 'available' ? '● AVAILABLE' : '● WORKING';
+                stEl.style.color = sel.status === 'available' ? 'var(--accent)' : 'var(--green)';
             }
-            showToast(targetId === '__ALL__' ? `Broadcasted to ${targets.length} agents` : `Dispatched to ${WORKFORCE[targetId]?.name || targetId}`);
+            showToast(targetId === '__ALL__' ? `Broadcasted to ${targets.length} agents` : `${WORKFORCE[targetId]?.name || targetId}: "${latestReply.slice(0, 68)}${latestReply.length > 68 ? '...' : ''}"`);
             return true;
         }
 
@@ -4152,18 +4188,19 @@ pub fn boot_tr7n7y7_kuroshio_studio() -> Result<(), Box<dyn std::error::Error>> 
             ).join('');
             const historyHtml = localChatFeed.length
                 ? localChatFeed.slice().reverse().map(m => `
-                    <div class="log-row">
-                        <div>
+                    <div class="log-row" style="flex-direction:column;gap:4px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
                             <div style="color:var(--accent);font-weight:700;">${escHtml(m.sender)} → ${escHtml(WORKFORCE[m.target_id]?.name || m.target_id)}</div>
-                            <div style="color:#e2e8f0;margin-top:2px;">${escHtml(m.text)}</div>
+                            <div style="color:var(--muted);font-size:11px;">${escHtml(m.time)}</div>
                         </div>
-                        <div style="color:var(--muted);font-size:11px;">${escHtml(m.time)}</div>
+                        <div style="color:#cbd5e1;">“${escHtml(m.text)}”</div>
+                        ${m.reply ? `<div style="color:#4ade80;font-size:11.5px;border-left:2px solid #4ade80;padding-left:8px;margin-top:2px;"><b>${escHtml(WORKFORCE[m.target_id]?.name || m.target_id)}:</b> ${escHtml(m.reply)}</div>` : ''}
                     </div>`).join('')
                 : Object.values(WORKFORCE).slice(0, 5).map(a => `
                     <div class="log-row">
                         <div>
                             <div style="color:#fff;font-weight:700;">${a.avatar} ${escHtml(a.name)}</div>
-                            <div style="color:#cbd5e1;margin-top:2px;">“${escHtml(a.speech || a.activity)}”</div>
+                            <div style="color:#4ade80;font-size:11.5px;margin-top:2px;">${escHtml(a.last_reply || a.speech || a.activity)}</div>
                         </div>
                         <button class="ui-btn" onclick="focusAgentFromModal('${escHtml(a.id)}')">Focus 3D</button>
                     </div>`).join('');
@@ -4659,7 +4696,7 @@ pub fn boot_tr7n7y7_kuroshio_studio() -> Result<(), Box<dyn std::error::Error>> 
                 const empObj = employees[id];
                 const emp = WORKFORCE[id];
                 if (empObj && empObj.speechSprite && emp) {
-                    empObj.speechSprite.visible = aiBehaviourState.showSpeechBubbles && (emp.status === 'working' || emp.status === 'waiting');
+                    empObj.speechSprite.visible = aiBehaviourState.showSpeechBubbles && Boolean(emp.speech || emp.activity);
                 }
             }
         }
