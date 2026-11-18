@@ -1,0 +1,3975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tr7n7y7 • 3D Spatial Office & Kuroshio Studio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        :root {
+            --bg-void: #07090e;
+            --bg-topbar: #0b0d14;
+            --bg-sidebar: #0d1017;
+            --bg-drawer: #10131c;
+            --bg-surface: rgba(16, 20, 30, 0.92);
+            --bg-card: rgba(15, 20, 32, 0.96);
+            --border: #1b2232;
+            --border-bright: #2a354d;
+            --accent: #38bdf8;
+            --accent-blue: #3b82f6;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --text: #f1f5f9;
+            --muted: #64748b;
+            --text-dim: #94a3b8;
+            --green: #22c55e;
+            --amber: #eab308;
+            --red: #ef4444;
+            --gold: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-void);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            font-size: 13px;
+            user-select: none;
+        }
+
+        /* Top Global Bar */
+        #topbar {
+            height: 46px;
+            background: var(--bg-topbar);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            flex-shrink: 0;
+            z-index: 40;
+        }
+
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: -0.01em;
+            color: #f8fafc;
+            margin-right: 10px;
+        }
+
+        .cube-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+        }
+
+        .top-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dim);
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .top-pill:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .top-pill.active {
+            background: #161c2b;
+            border-color: var(--border-bright);
+            color: #fff;
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .credit-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+        }
+
+        .credit-pill:hover {
+            border-color: var(--border-bright);
+            color: #fff;
+        }
+
+        .usage-meter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #131824;
+            border: 1px solid var(--border);
+            font-size: 11.5px;
+            color: #cbd5e1;
+        }
+
+        .usage-bar-wrap {
+            width: 58px;
+            height: 5px;
+            background: #1e293b;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .usage-bar-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #38bdf8);
+        }
+
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .user-avatar-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1d4ed8, #0284c7);
+            border: 1.5px solid #38bdf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+            position: relative;
+        }
+
+        .user-avatar-badge::after {
+            content: '';
+            position: absolute;
+            right: -1px;
+            bottom: -1px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            border: 1.5px solid var(--bg-topbar);
+        }
+
+        /* Main Workspace Body */
+        #app-body {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+
+        /* Column 1: Compact Nav Rail */
+        #nav-rail {
+            width: 152px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 30;
+        }
+
+        .search-box-wrap {
+            padding: 10px 10px 6px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: #131722;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 11.5px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+        }
+
+        .nav-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px 10px;
+        }
+
+        .nav-scroll::-webkit-scrollbar,
+        .org-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .nav-scroll::-webkit-scrollbar-thumb,
+        .org-scroll::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+
+        .nav-group-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #475569;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 9px 8px 4px;
+        }
+
+        .rail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #8b9bb4;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            margin-bottom: 1px;
+        }
+
+        .rail-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: #e2e8f0;
+        }
+
+        .rail-item.active {
+            background: #172033;
+            color: #60a5fa;
+            font-weight: 600;
+            box-shadow: inset 2.5px 0 0 #38bdf8;
+        }
+
+        .rail-footer {
+            border-top: 1px solid var(--border);
+            padding: 9px 12px;
+            font-size: 11.5px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .rail-footer:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Column 2: Organization Drawer */
+        #org-drawer {
+            width: 215px;
+            background: var(--bg-drawer);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 25;
+            transition: width 0.2s ease;
+        }
+
+        #org-drawer.collapsed {
+            width: 0;
+            overflow: hidden;
+            border-right: none;
+        }
+
+        .org-header {
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .org-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .count-badge {
+            background: #1a2234;
+            color: var(--accent);
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 99px;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        .org-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .team-block {
+            margin-bottom: 12px;
+        }
+
+        .team-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #cbd5e1;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .team-header:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .emp-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 6px 8px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.14s ease;
+            margin-top: 2px;
+            border: 1px solid transparent;
+        }
+
+        .emp-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .emp-row.selected {
+            background: rgba(56, 189, 248, 0.12);
+            border-color: rgba(56, 189, 248, 0.35);
+        }
+
+        .emp-avatar-wrap {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #171e2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .emp-status-dot {
+            position: absolute;
+            right: -1px;
+            bottom: -1px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1.5px solid var(--bg-drawer);
+        }
+
+        .emp-meta {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .emp-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .emp-role {
+            font-size: 10px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Viewport & Canvas */
+        #viewport-container {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at 50% 45%, #0c1220 0%, #06080d 100%);
+            overflow: hidden;
+        }
+
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+            display: block;
+            outline: none;
+        }
+
+        /* Canvas Overlays */
+        .canvas-top-left {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 15;
+        }
+
+        .crumb-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(13, 17, 26, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .view-switcher {
+            display: flex;
+            background: rgba(13, 17, 26, 0.88);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .switch-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 11.5px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.14s ease;
+        }
+
+        .switch-btn:hover {
+            color: #fff;
+        }
+
+        .switch-btn.active {
+            background: #1c2538;
+            color: #f8fafc;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .canvas-top-right {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 15;
+        }
+
+        .action-pill {
+            background: rgba(15, 20, 32, 0.88);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-bright);
+            color: #e2e8f0;
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .action-pill:hover {
+            border-color: var(--accent);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .action-pill.active {
+            background: rgba(56, 189, 248, 0.18);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .whisper-pill {
+            background: linear-gradient(135deg, rgba(225, 29, 72, 0.9), rgba(239, 68, 68, 0.9));
+            border-color: rgba(251, 113, 133, 0.5);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+        }
+
+        .whisper-pill.recording {
+            animation: pulse-mic 1.2s infinite;
+            background: #e11d48;
+        }
+
+        @keyframes pulse-mic {
+            0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+        }
+
+        /* Bottom-Right Camera Controls + Operator PiP */
+        .canvas-bottom-right {
+            position: absolute;
+            bottom: 18px;
+            right: 18px;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            z-index: 15;
+        }
+
+        .zoom-stack {
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 20, 32, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-bright);
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .zoom-btn {
+            width: 30px;
+            height: 28px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            color: #cbd5e1;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:last-child {
+            border-bottom: none;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(56, 189, 248, 0.14);
+            color: #fff;
+        }
+
+        .operator-pip {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #162033, #0b111e);
+            border: 1.5px solid #2b3c5e;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .operator-pip:hover {
+            border-color: var(--accent);
+        }
+
+        .pip-dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        /* Conversation / Inspection Working Card */
+        .character-card {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 375px;
+            background: var(--bg-card);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.78), 0 0 22px rgba(56, 189, 248, 0.14);
+            border-radius: 14px;
+            padding: 18px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 35;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .char-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            background: #172033;
+            border: 1.5px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .char-info h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .char-info p {
+            font-size: 11.5px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .card-badges {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .loc-badge {
+            font-size: 10.5px;
+            padding: 3px 8px;
+            border-radius: 99px;
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            font-weight: 600;
+        }
+
+        .activity-box {
+            background: rgba(7, 10, 18, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #e2e8f0;
+        }
+
+        .box-label {
+            font-size: 9.5px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .composer-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .msg-input {
+            flex: 1;
+            background: rgba(6, 9, 16, 0.85);
+            border: 1px solid var(--border-bright);
+            border-radius: 8px;
+            padding: 9px 11px;
+            color: #fff;
+            font-size: 12.5px;
+            outline: none;
+            user-select: text;
+        }
+
+        .msg-input:focus {
+            border-color: var(--accent);
+        }
+
+        .mini-mic-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border-bright);
+            background: #141a29;
+            color: #f8fafc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mini-mic-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 9px 12px;
+            font-weight: 600;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+
+        .send-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            padding: 2px 6px;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        /* Modal for Tasks & Audit Logs */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 7, 14, 0.72);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 45;
+        }
+
+        .modal-card {
+            width: 640px;
+            max-width: 90%;
+            max-height: 76vh;
+            background: #0f1422;
+            border: 1px solid var(--border-bright);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-row {
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #090d16;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .toast-notify {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(13, 19, 32, 0.96);
+            border: 1px solid var(--accent);
+            padding: 9px 18px;
+            border-radius: 9px;
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 600;
+            display: none;
+            z-index: 60;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65);
+        }
+
+        /* Lemuria Studio Visual Level Editor Panels */
+        .studio-panel {
+            position: absolute;
+            top: 56px;
+            bottom: 18px;
+            width: 280px;
+            background: var(--bg-card);
+            backdrop-filter: blur(18px);
+            border: 1px solid var(--border-bright);
+            border-radius: 12px;
+            padding: 13px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 28;
+            overflow-y: auto;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.72);
+        }
+        .studio-panel.left { left: 14px; }
+        .studio-panel.right { right: 16px; bottom: 78px; width: 296px; }
+        .studio-panel::-webkit-scrollbar { width: 4px; }
+        .studio-panel::-webkit-scrollbar-thumb { background: #263147; border-radius: 4px; }
+        .studio-section {
+            background: rgba(7, 10, 18, 0.72);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 9px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .studio-hdr {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .studio-input, .studio-select {
+            width: 100%;
+            background: #0b101b;
+            border: 1px solid var(--border-bright);
+            border-radius: 6px;
+            padding: 5px 8px;
+            color: #f8fafc;
+            font-size: 11.5px;
+            outline: none;
+            user-select: text;
+        }
+        .studio-input:focus, .studio-select:focus { border-color: var(--accent); }
+        .studio-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .studio-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .studio-btn {
+            background: #172033;
+            border: 1px solid var(--border-bright);
+            color: #e2e8f0;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.14s ease;
+        }
+        .studio-btn:hover { border-color: var(--accent); color: #fff; background: #1e2940; }
+        .studio-btn-primary {
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            border: none;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 10px;
+            border-radius: 7px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .studio-btn-primary:hover { filter: brightness(1.1); }
+        .outliner-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            color: #cbd5e1;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .outliner-item:hover { background: rgba(255,255,255,0.04); }
+        .outliner-item.active { background: rgba(56, 189, 248, 0.14); border-color: rgba(56, 189, 248, 0.45); color: #fff; }
+        .nudge-row { display: flex; gap: 3px; margin-top: 2px; }
+        .nudge-btn {
+            flex: 1; background: #131a29; border: 1px solid var(--border); color: #94a3b8;
+            font-size: 10px; border-radius: 4px; padding: 2px 0; cursor: pointer;
+        }
+        .nudge-btn:hover { color: #fff; border-color: var(--accent); }
+        .drop-zone {
+            border: 1.5px dashed rgba(56, 189, 248, 0.45);
+            background: rgba(14, 24, 42, 0.65);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .drop-zone.dragover, .drop-zone:hover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.14);
+            color: #fff;
+        }
+        .gizmo-bar { display: flex; gap: 4px; }
+        .gizmo-btn {
+            flex: 1; background: #111827; border: 1px solid var(--border-bright);
+            color: #94a3b8; font-size: 10.5px; font-weight: 700; padding: 4px 6px;
+            border-radius: 5px; cursor: pointer; text-align: center;
+        }
+        .gizmo-btn.active { background: rgba(56, 189, 248, 0.2); border-color: var(--accent); color: #fff; }
+        .bb-modal { width: 1020px; max-width: 95vw; max-height: 86vh; }
+        .bb-tracks {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px; overflow-y: auto; padding-right: 4px;
+        }
+        .bb-col {
+            background: #090d16; border: 1px solid var(--border); border-radius: 10px;
+            padding: 10px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .bb-col-title { font-size: 11.5px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+        .bb-card {
+            background: #101625; border: 1px solid var(--border-bright); border-radius: 8px;
+            padding: 9px; display: flex; flex-direction: column; gap: 5px; font-size: 11.5px;
+        }
+        .bb-badge { font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 99px; cursor: pointer; }
+        .bb-status-todo { background: rgba(148,163,184,0.16); color: #cbd5e1; }
+        .bb-status-in_progress { background: rgba(234,179,8,0.18); color: #fde047; }
+        .bb-status-done { background: rgba(34,197,94,0.18); color: #4ade80; }
+    </style>
+</head>
+<body>
+    <!-- Top Global Header -->
+    <div id="topbar">
+        <div class="top-left">
+            <div class="brand-mark">
+                <div class="cube-icon">🧊</div>
+                <span>tr7n7y7</span>
+            </div>
+            <button class="top-pill" onclick="showToast('tr7n7y7 Marketplace plugins synced with tr7n7t7.com')">🏪 Marketplace</button>
+            <button class="top-pill active" onclick="exitStudioMode(); resetView()">🏢 Workspace</button>
+            <button class="top-pill" onclick="openBlackboardModal()">📋 Strategy Blackboard</button>
+        </div>
+
+        <div class="top-right">
+            <div class="credit-pill" onclick="showToast('Cluster compute credits active')">🎁 Earn free credits</div>
+            <div class="usage-meter">
+                <span>🏢 Enterprise</span>
+                <span style="color:#fff;font-weight:600;">504.9K</span>
+                <div class="usage-bar-wrap"><div class="usage-bar-fill"></div></div>
+                <span style="color:var(--accent);font-weight:700;">100%</span>
+            </div>
+            <button class="icon-btn" title="Activity Logs" onclick="openLogsModal()">🔔</button>
+            <button class="icon-btn" title="Cluster Health" onclick="showToast('OpenRaft Quorum Healthy • 10 Agents Online')">⚙️</button>
+            <button class="icon-btn" title="Controls Help" onclick="showToast('Left Drag: Orbit • Right Drag: Pan • Scroll: Zoom • Click Bot to Chat')">?</button>
+            <div class="user-avatar-badge" title="Founder Operator">K</div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-body">
+        <!-- Left Nav Rail -->
+        <div id="nav-rail">
+            <div class="search-box-wrap">
+                <input type="text" id="empSearch" class="search-input" placeholder="🔍 Search" oninput="filterOrgTree()">
+            </div>
+            <div class="nav-scroll">
+                <div class="nav-group-label">HOME</div>
+                <div class="rail-item" onclick="exitStudioMode(); resetView()"><span>🏠</span> Overview</div>
+                <div class="rail-item active" id="navOffice" onclick="exitStudioMode(); resetView(); setViewTab('btnViewOffice')"><span>🧊</span> 3D Office</div>
+                <div class="rail-item" id="navStudio" onclick="enterStudioMode()"><span>🎮</span> Kuroshio Studio</div>
+                <div class="rail-item" id="navBlackboard" onclick="openBlackboardModal()"><span>📋</span> Blackboard</div>
+
+                <div class="nav-group-label">WORK</div>
+                <div class="rail-item" onclick="selectFirstOrDefault()"><span>💬</span> Chat</div>
+                <div class="rail-item" onclick="openTasksModal()"><span>✅</span> Tasks</div>
+                <div class="rail-item" onclick="showToast('Drive Vault Mounted (Kuroshio Gyre)')"><span>📁</span> Drive</div>
+                <div class="rail-item" onclick="showToast('24/7 Continuous Consensus Schedule')"><span>📅</span> Schedule</div>
+
+                <div class="nav-group-label">EMPLOYEE</div>
+                <div class="rail-item" onclick="showToast('MCP + WhisperFlow Tools Connected')"><span>🛠️</span> Tools</div>
+                <div class="rail-item" onclick="showToast('Rust / Goose / Solana Skills Loaded')"><span>⚡</span> Skills</div>
+                <div class="rail-item" onclick="openTasksModal()"><span>📋</span> Duties</div>
+                <div class="rail-item" onclick="selectFirstOrDefault()"><span>🎭</span> Persona</div>
+
+                <div class="nav-group-label">TEAM</div>
+                <div class="rail-item" onclick="focusRoom('exec')"><span>🏛️</span> Exec Room</div>
+                <div class="rail-item" onclick="focusRoom('trade')"><span>📊</span> Trading Room</div>
+                <div class="rail-item" onclick="focusRoom('lounge')"><span>🎱</span> Break Lounge</div>
+
+                <div class="nav-group-label">COMPANY</div>
+                <div class="rail-item" onclick="toggleOrgDrawer(true)"><span>👥</span> Employees</div>
+                <div class="rail-item" onclick="focusRoom('conf')"><span>🔵</span> Meeting Room</div>
+                <div class="rail-item" onclick="showToast('Kuroshio Gyre Fleet Protocol v2.0')"><span>💼</span> Business</div>
+                <div class="rail-item" onclick="showToast('Slippage & Quorum Guardrails Enforced')"><span>🛡️</span> Policies</div>
+
+                <div class="nav-group-label">ACTIVITY</div>
+                <div class="rail-item" onclick="openLogsModal()"><span>💭</span> Conversations</div>
+                <div class="rail-item" onclick="openLogsModal()"><span>📡</span> Activity</div>
+
+                <div class="nav-group-label">SETTINGS</div>
+                <div class="rail-item" onclick="showToast('Autonomous Agent Behaviour: Active')"><span>🧠</span> AI Behaviour</div>
+                <div class="rail-item" onclick="showToast('Siren Radio + WhisperFlow Audio Channels')"><span>📻</span> Channels</div>
+                <div class="rail-item" onclick="showToast('Rust Actix-Free HTTP Engine • Port 8899')"><span>⚙️</span> Settings</div>
+            </div>
+            <div class="rail-footer" onclick="showToast('Workspace: Kuroshio Gyre Team 7')">
+                <span>Personal Account</span>
+                <span>⌄</span>
+            </div>
+        </div>
+
+        <!-- Column 2: Collapsible Organization Drawer -->
+        <div id="org-drawer">
+            <div class="org-header">
+                <div class="org-title">
+                    <span>🏢 Organization</span>
+                    <span class="count-badge" id="empCountBadge">10</span>
+                </div>
+                <button class="icon-btn" onclick="toggleOrgDrawer()" title="Collapse Drawer">‹</button>
+            </div>
+            <div class="org-scroll" id="orgTree"></div>
+        </div>
+
+        <!-- 3D Spatial Canvas Container -->
+        <div id="viewport-container">
+            <div class="canvas-top-left">
+                <div class="crumb-pill">
+                    <span style="color:var(--accent);">💠</span>
+                    <span>tr7n7t7.com • tr7n7y7</span>
+                </div>
+                <div class="view-switcher">
+                    <button class="switch-btn" id="btnViewOrg" onclick="exitStudioMode(); toggleOrgDrawer(); setViewTab('btnViewOrg')">🏢 Organization</button>
+                    <button class="switch-btn" id="btnViewGraph" onclick="exitStudioMode(); focusOverhead(); setViewTab('btnViewGraph')">🕸️ Graph</button>
+                    <button class="switch-btn active" id="btnViewOffice" onclick="exitStudioMode(); resetView(); setViewTab('btnViewOffice')">🧊 Office</button>
+                    <button class="switch-btn" id="btnViewStudio" onclick="enterStudioMode()">🎮 Kuroshio Studio</button>
+                    <button class="switch-btn" id="btnViewBlackboard" onclick="openBlackboardModal()">📋 Blackboard</button>
+                </div>
+            </div>
+
+            <div class="canvas-top-right">
+                <button class="action-pill whisper-pill" id="whisperBtn" onclick="toggleWhisperFlow()">
+                    <span>🎙️</span>
+                    <span id="whisperLabel">WhisperFlow</span>
+                </button>
+                <button class="action-pill" id="tourBtn" onclick="toggleTour()">
+                    <span>🎬</span>
+                    <span>Cinematic Tour</span>
+                </button>
+                <button class="action-pill" onclick="shareClip()">
+                    <span>📸</span>
+                    <span>Share Clip</span>
+                </button>
+            </div>
+
+            <div id="canvas3d"></div>
+
+            <!-- Lemuria Studio Left Palette & Outliner -->
+            <div class="studio-panel left" id="studioLeftPanel">
+                <div class="studio-section">
+                    <div class="studio-hdr">
+                        <span>🏰 Node Room Scene Target</span>
+                    </div>
+                    <select id="studioSceneTargetSelect" class="studio-select" onchange="loadStudioTargetScene(this.value)">
+                        <option value="heavenlybound">⚔️ HeavenlyBound Node (room_lemuria_studio)</option>
+                        <option value="lemuria">🌐 Lemuria World (lemuria_manifest.json)</option>
+                    </select>
+                </div>
+
+                <div class="studio-section">
+                    <div class="studio-hdr">
+                        <span>🌍 Nautilus WGS84 Anchor</span>
+                    </div>
+                    <select id="anchorPreset" class="studio-select" onchange="applyAnchorPreset()">
+                        <option value="35.6586,139.7454,42.0,HeavenlyBound Sovereign Lodge Citadel">HeavenlyBound Citadel (35.6586°N, 139.7454°E)</option>
+                        <option value="35.6762,139.6503,12.0,Neo-Tokyo Harbor Anchor">Neo-Tokyo Harbor (35.6762°N, 139.6503°E)</option>
+                        <option value="25.7907,-80.1300,4.0,Miami Beach Sector">Miami Beach (25.7907°N, -80.1300°W)</option>
+                        <option value="37.7749,-122.4194,15.0,San Francisco Bay Node">San Francisco (37.7749°N, -122.4194°W)</option>
+                    </select>
+                    <div class="studio-grid-3">
+                        <div>
+                            <div class="box-label">Lat</div>
+                            <input type="number" step="0.0001" id="ancLat" class="studio-input" oninput="updateAnchorFromInputs()">
+                        </div>
+                        <div>
+                            <div class="box-label">Lon</div>
+                            <input type="number" step="0.0001" id="ancLon" class="studio-input" oninput="updateAnchorFromInputs()">
+                        </div>
+                        <div>
+                            <div class="box-label">Alt (m)</div>
+                            <input type="number" step="0.5" id="ancAlt" class="studio-input" oninput="updateAnchorFromInputs()">
+                        </div>
+                    </div>
+                    <div id="ecefReadout" style="font-size:10px;color:#94a3b8;font-family:monospace;">ECEF: computing...</div>
+                </div>
+
+                <div class="studio-section">
+                    <div class="studio-hdr"><span>➕ Spawn & Drop-Bake Assets</span></div>
+                    <div class="studio-grid-2">
+                        <button class="studio-btn" onclick="spawnStudioEntity('totems')">🏛️ + Totem Kiosk</button>
+                        <button class="studio-btn" onclick="spawnStudioEntity('splat')">✨ + Gaussian Splat</button>
+                        <button class="studio-btn" onclick="spawnStudioEntity('pacejka')">🛣️ + Pacejka Surface</button>
+                        <button class="studio-btn" onclick="spawnStudioEntity('acoustic_profiles')">🔊 + Siren 432Hz Zone</button>
+                    </div>
+                    <div id="studioDropZone" class="drop-zone"
+                        onclick="document.getElementById('studioFileInput').click()"
+                        ondragover="event.preventDefault(); this.classList.add('dragover')"
+                        ondragleave="this.classList.remove('dragover')"
+                        ondrop="handleStudioFileDrop(event)">
+                        📦 Drop <b>.glb / .ply / .splat</b> here or click to auto-bake meshlets & convex hull
+                    </div>
+                    <input type="file" id="studioFileInput" accept=".glb,.gltf,.ply,.splat,.usdz" style="display:none;" onchange="handleStudioFileInput(this.files)">
+                </div>
+
+                <div class="studio-section" style="flex:1;min-height:140px;">
+                    <div class="studio-hdr">
+                        <span>🗂️ Scene Outliner</span>
+                        <span id="studioCountBadge" class="count-badge">0</span>
+                    </div>
+                    <div id="studioOutliner" style="display:flex;flex-direction:column;gap:3px;overflow-y:auto;"></div>
+                </div>
+            </div>
+
+            <!-- Kuroshio Studio Right Inspector & Baker -->
+            <div class="studio-panel right" id="studioRightPanel">
+                <div class="studio-section">
+                    <div class="studio-hdr">
+                        <span>🎛️ Property Inspector</span>
+                        <label style="font-size:10px;color:#cbd5e1;display:flex;align-items:center;gap:4px;cursor:pointer;">
+                            <input type="checkbox" id="gridSnapToggle" checked> 0.5m Grid Snap
+                        </label>
+                    </div>
+                    <div class="gizmo-bar">
+                        <button class="gizmo-btn active" id="gzMove" onclick="setGizmoMode('translate')">✥ Move (W)</button>
+                        <button class="gizmo-btn" id="gzRotate" onclick="setGizmoMode('rotate')">⟳ Rotate (E)</button>
+                        <button class="gizmo-btn" id="gzScale" onclick="setGizmoMode('scale')">⤢ Scale (R)</button>
+                    </div>
+                    <div id="studioInspectorEmpty" style="font-size:11.5px;color:var(--muted);">
+                        Select an entity in the 3D scene or Outliner to drag its 3D gizmo axes or edit properties.
+                    </div>
+                    <div id="studioInspectorForm" style="display:none;flex-direction:column;gap:8px;">
+                        <div>
+                            <div class="box-label">Entity Name</div>
+                            <input type="text" id="inspName" class="studio-input" oninput="applyInspectorEdit()">
+                        </div>
+                        <div>
+                            <div class="box-label">Position [X, Y, Z] (m)</div>
+                            <div class="studio-grid-3">
+                                <div>
+                                    <input type="number" step="0.5" id="inspX" class="studio-input" oninput="applyInspectorEdit()">
+                                    <div class="nudge-row"><button class="nudge-btn" onclick="nudgeAxis('x',-0.5)">-0.5</button><button class="nudge-btn" onclick="nudgeAxis('x',0.5)">+0.5</button></div>
+                                </div>
+                                <div>
+                                    <input type="number" step="0.5" id="inspY" class="studio-input" oninput="applyInspectorEdit()">
+                                    <div class="nudge-row"><button class="nudge-btn" onclick="nudgeAxis('y',-0.5)">-0.5</button><button class="nudge-btn" onclick="nudgeAxis('y',0.5)">+0.5</button></div>
+                                </div>
+                                <div>
+                                    <input type="number" step="0.5" id="inspZ" class="studio-input" oninput="applyInspectorEdit()">
+                                    <div class="nudge-row"><button class="nudge-btn" onclick="nudgeAxis('z',-0.5)">-0.5</button><button class="nudge-btn" onclick="nudgeAxis('z',0.5)">+0.5</button></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="inspExtraFields" style="display:flex;flex-direction:column;gap:7px;"></div>
+                        <button class="studio-btn" style="color:#f87171;border-color:rgba(248,113,113,0.35);text-align:center;" onclick="deleteSelectedStudioEntity()">🗑️ Delete Selected</button>
+                    </div>
+                </div>
+
+                <div class="studio-section">
+                    <div class="studio-hdr">
+                        <span>⚡ Kuroshio Baker & Hot-Reload</span>
+                        <span id="studioRevBadge" class="count-badge">Rev #1</span>
+                    </div>
+                    <button class="studio-btn-primary" onclick="bakeAndHotReload()">⚡ Bake Meshlets & Hot-Reload (Save)</button>
+                    <button class="studio-btn" style="text-align:center;" onclick="openRustSnippetModal()">🦀 Export Rust SDK Snippet</button>
+                    <div id="bakeTelemetryBox" style="background:#05080f;border:1px solid var(--border);border-radius:7px;padding:8px;font-size:11px;line-height:1.5;color:#cbd5e1;font-family:monospace;">
+                        Ready to bake lemuria_manifest.json
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversation / Inspection Card -->
+            <div class="character-card" id="charCard">
+                <div class="card-header">
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <div class="char-avatar" id="cAvatar">🔱</div>
+                        <div class="char-info">
+                            <h2 id="cName">Triton ★</h2>
+                            <p id="cRole">Chief of Staff & Core Verifier</p>
+                        </div>
+                    </div>
+                    <button class="close-btn" onclick="closeCard()">&times;</button>
+                </div>
+
+                <div class="card-badges">
+                    <span id="cStatus" style="font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase;">● WORKING</span>
+                    <span id="cLocation" class="loc-badge">At Desk • Executive Suite</span>
+                    <span id="cNode" style="font-size:11px;color:var(--muted);">Seed Pi (10.0.0.58)</span>
+                </div>
+
+                <div class="activity-box">
+                    <div class="box-label">Live Activity</div>
+                    <div id="cActivity">Auditing OpenRaft block #144002</div>
+                </div>
+
+                <div class="activity-box">
+                    <div class="box-label" style="color:var(--accent);">Last Dispatched Directive</div>
+                    <div id="cLastDirective" style="color:#cbd5e1;font-style:italic;">None yet</div>
+                </div>
+
+                <div class="composer-row">
+                    <input type="text" class="msg-input" id="cMsgInput" placeholder="Message employee (voice or text)..." onkeydown="if(event.key==='Enter') sendInstruction()">
+                    <button class="mini-mic-btn" title="Dictate via WhisperFlow" onclick="toggleWhisperFlow()">🎙️</button>
+                    <button class="send-btn" onclick="sendInstruction()">Send</button>
+                </div>
+            </div>
+
+            <!-- Bottom-Right Camera Controls & Operator PiP -->
+            <div class="canvas-bottom-right">
+                <div class="zoom-stack">
+                    <button class="zoom-btn" onclick="zoomCamera(0.82)" title="Zoom In">+</button>
+                    <button class="zoom-btn" onclick="zoomCamera(1.22)" title="Zoom Out">−</button>
+                    <button class="zoom-btn" onclick="resetView()" title="Reset View">⟲</button>
+                </div>
+                <div class="operator-pip" title="Operator Voice & Camera PiP" onclick="toggleWhisperFlow()">
+                    <div class="pip-dot"></div>
+                    <span style="font-size:18px;">🧑‍💻</span>
+                    <span style="font-size:8.5px;color:#94a3b8;font-weight:700;letter-spacing:0.04em;">LIVE</span>
+                </div>
+            </div>
+
+            <!-- Executive Strategy Blackboard Modal -->
+            <div class="modal-overlay" id="blackboardModal" onclick="if(event.target===this) closeBlackboardModal()">
+                <div class="modal-card bb-modal">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:8px;">
+                        <div>
+                            <h3 style="font-size:16px;font-weight:800;color:#fff;">📋 tr7n7y7 Executive Strategy Blackboard</h3>
+                            <div style="font-size:11px;color:var(--text-dim);">Federal Contracts • Social Growth • Rust/Goose Recreations • Kuroshio Studio • tr7n7t7.com</div>
+                        </div>
+                        <button class="close-btn" onclick="closeBlackboardModal()">&times;</button>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                        <select id="bbNewTrack" class="studio-select" style="width:210px;">
+                            <option value="Federal Contracts & SBIR/STTR">🏛️ Federal Contracts & SBIR</option>
+                            <option value="Social Media & Growth">📣 Social Media & Growth</option>
+                            <option value="Rust & Goose Platform Recreations">🦀 Rust & Goose Recreations</option>
+                            <option value="Kuroshio Studio & Engine Upgrades">🎮 Kuroshio Studio Upgrades</option>
+                            <option value="Strategic Product Suggestions">💡 Strategic Suggestions</option>
+                        </select>
+                        <input type="text" id="bbNewTitle" class="studio-input" style="flex:1;min-width:180px;" placeholder="New blackboard task or strategic note...">
+                        <select id="bbNewOwner" class="studio-select" style="width:120px;">
+                            <option value="triton">🔱 Triton</option>
+                            <option value="ursula">🔮 Ursula</option>
+                            <option value="sebastian">🦀 Sebastian</option>
+                            <option value="herdr_arb">⚡ tr7n7y7 Arb</option>
+                            <option value="kael">✍️ Kael</option>
+                        </select>
+                        <select id="bbNewPrio" class="studio-select" style="width:105px;">
+                            <option value="CRITICAL">CRITICAL</option>
+                            <option value="HIGH">HIGH</option>
+                            <option value="NEXT">NEXT</option>
+                        </select>
+                        <button class="studio-btn-primary" style="padding:6px 12px;" onclick="addBlackboardItem()">+ Add Card</button>
+                    </div>
+                    <div class="bb-tracks" id="bbTracksContainer"></div>
+                </div>
+            </div>
+
+            <!-- Modal Overlay (Tasks / Audit Logs) -->
+            <div class="modal-overlay" id="infoModal" onclick="if(event.target===this) closeModal()">
+                <div class="modal-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <h3 id="modalTitle" style="font-size:15px;font-weight:700;">Task Board</h3>
+                        <button class="close-btn" onclick="closeModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="modalBody"></div>
+                </div>
+            </div>
+
+            <div class="toast-notify" id="toast">Ready</div>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, controls, raycaster, mouse;
+        let officeGroup, studioGroup, holodeckCrystal;
+        let activeMode = 'office';
+        let studioSceneTarget = 'heavenlybound';
+        let studioManifest = null;
+        let selectedStudioRef = null;
+        let gizmoMode = 'translate';
+        let activeGizmoDrag = null;
+        let studioSyncTimer = null;
+        let blackboardItems = [];
+
+        const FALLBACK_WORKFORCE = {
+            triton: { id:'triton', name:'Triton ★', role:'Chief of Staff & Core Verifier', team:'Executive & Consensus', status:'working', activity:'Auditing OpenRaft block #144002 and node health', room:'Executive & Marketing', desk_pos:[-7.5,0,-9.2], rot_y:0, speech:'Auditing Block #144002', node:'Seed Pi (10.0.0.58)', color:'#38bdf8', avatar:'🔱', is_leader:true, last_directive:'None yet' },
+            sebastian: { id:'sebastian', name:'Sebastian', role:'Marketing Director & Edge Sentinel', team:'Executive & Consensus', status:'working', activity:'Streaming Siren Radio 24/7 & syndicating VisionQuest', room:'Executive & Marketing', desk_pos:[-13.0,0,-7.2], rot_y:1.5708, speech:'Siren Radio Live', node:'Screen Pi (10.0.0.60)', color:'#f43f5e', avatar:'🦀', is_leader:false, last_directive:'None yet' },
+            siren: { id:'siren', name:'Siren', role:'24/7 Audio Stream Producer', team:'Executive & Consensus', status:'working', activity:'Mastering 432Hz spatial audio cues', room:'Executive & Marketing', desk_pos:[-13.0,0,-3.8], rot_y:1.5708, speech:'Stream Bitrate 320kbps', node:'Audio Pi (10.0.0.61)', color:'#a855f7', avatar:'🎙️', is_leader:false, last_directive:'None yet' },
+            kael: { id:'kael', name:'Kael', role:'Content & Narrative Architect', team:'Executive & Consensus', status:'working', activity:'Drafting tr7n7y7 Federal Capability Brief', room:'Executive & Marketing', desk_pos:[-13.0,0,-0.4], rot_y:1.5708, speech:'Updating Federal Brief', node:'Workstation Node 02', color:'#06b6d4', avatar:'✍️', is_leader:false, last_directive:'None yet' },
+            nautilus: { id:'nautilus', name:'Nautilus', role:'Community & Telemetry Analyst', team:'Executive & Consensus', status:'waiting', activity:'Waiting for approval on cluster telemetry publish', room:'Executive & Marketing', desk_pos:[-2.0,0,-7.2], rot_y:-1.5708, speech:'Awaiting Sign-Off', node:'Telemetry Relay (10.0.0.59)', color:'#eab308', avatar:'📡', is_leader:false, last_directive:'None yet' },
+            echo: { id:'echo', name:'Echo', role:'Brand & Visual Designer', team:'Executive & Marketing', status:'available', activity:'Drifting inside studio; ready for asset sprint', room:'Executive & Marketing', desk_pos:[-6.5,0,-4.0], rot_y:0, speech:'Available for Sprint', node:'Design Workstation', color:'#ec4899', avatar:'🎨', is_leader:false, last_directive:'None yet' },
+            ursula: { id:'ursula', name:'Ursula ★', role:'Chief Growth Strategist & Allocator', team:'Strategy & Trading', status:'working', activity:'Evaluating SOL/USDC VWAP & SBIR Phase I pitch', room:'Trading & Sales', desk_pos:[5.5,0,-9.2], rot_y:0, speech:'SOL/USDC 72.97 | SBIR Ready', node:'Workstation Dual-GPU', color:'#c084fc', avatar:'🔮', is_leader:true, last_directive:'None yet' },
+            herdr_arb: { id:'herdr_arb', name:'tr7n7y7 Arb', role:'Jupiter DEX Liquidity Sentinel', team:'Strategy & Trading', status:'working', activity:'Scanning Solana DEX triangular spread routes', room:'Trading & Sales', desk_pos:[0.5,0,-7.2], rot_y:1.5708, speech:'Mempool Spread: 0.12%', node:'Seed Pi (10.0.0.58)', color:'#22c55e', avatar:'⚡', is_leader:false, last_directive:'None yet' },
+            aegis: { id:'aegis', name:'Aegis', role:'Risk & Treasury Invariant Guard', team:'Strategy & Trading', status:'working', activity:'Verifying cold-vault multisig & slippage ceiling', room:'Trading & Sales', desk_pos:[0.5,0,-3.8], rot_y:1.5708, speech:'Slippage Guard Active', node:'Vault Sentinel', color:'#3b82f6', avatar:'🛡️', is_leader:false, last_directive:'None yet' },
+            kraken: { id:'kraken', name:'Kraken', role:'MEV & Spread Route Executor', team:'Strategy & Trading', status:'available', activity:'Roaming lounge; standby for execution routing', room:'Lounge & Recreation', desk_pos:[3.5,0,4.5], rot_y:3.1416, speech:'Lounge Standby', node:'Execution Blade 01', color:'#14b8a6', avatar:'🐙', is_leader:false, last_directive:'None yet' }
+        };
+
+        const FALLBACK_BLACKBOARD = [
+            { id:'fed_1', track:'Federal Contracts & SBIR/STTR', title:'SAM.gov UEI & CAGE Registration for tr7n7y7', owner:'triton', priority:'CRITICAL', status:'todo', details:'Complete NAICS 541715 & 511210 validation on SAM.gov for DoD/NSF SBIR awards.' },
+            { id:'fed_2', track:'Federal Contracts & SBIR/STTR', title:'AFWERX / NavalX SBIR Phase I ($150K-$305K) Pitch', owner:'ursula', priority:'CRITICAL', status:'in_progress', details:'Package Nautilus f64 ECEF digital twin + DTN disconnected mesh for defense dual-use.' },
+            { id:'soc_1', track:'Social Media & Growth', title:'Daily 5-Sec Share Clip AI Office Loops', owner:'sebastian', priority:'CRITICAL', status:'in_progress', details:'Publish tr7n7y7 3D Command Floor & Kuroshio Studio highlights across X, TikTok & YouTube.' },
+            { id:'soc_2', track:'Social Media & Growth', title:'24/7 Seven Daughters Siren Radio Syndication', owner:'siren', priority:'HIGH', status:'done', details:'Live audio on radio.tr7n7t7.com funneling listeners into Lite & Kuroshio Studio.' },
+            { id:'rg_1', track:'Rust & Goose Platform Recreations', title:'Zero-GC siren_dsp.goose Audio Mixer & FFT Engine', owner:'siren', priority:'HIGH', status:'todo', details:'Port spatial RT60 & radio DSP to inline-stack Goose for sub-2% Pi CPU load.' },
+            { id:'ks_1', track:'Kuroshio Studio & Engine Upgrades', title:'Drop-Bake .glb/.ply + 3D Gizmos + HZB/SDF GI', owner:'ursula', priority:'CRITICAL', status:'done', details:'Live transform gizmos, asset baker dropzone, HZB culling, SDF GI & rollback netcode.' },
+            { id:'prod_1', track:'Strategic Product Suggestions', title:'Turnkey Sovereign Club-in-a-Box Pi 5 Appliance', owner:'herdr_arb', priority:'HIGH', status:'todo', details:'Ship LUKS-encrypted Pi 5 units running tr7n7y7 Office, Siren Radio & Home Node Fortress.' }
+        ];
+
+        const FALLBACK_HEAVENLYBOUND = {
+            version: '0.3.0',
+            generator: 'tr7n7y7 Kuroshio Studio',
+            primary_glb_world: 'heavenlyBound/assets/models/cyberpunk_city.glb',
+            nautilus_anchor: { label: 'HeavenlyBound Sovereign Lodge Citadel', fortress_room_id: 'room_lemuria_studio', origin: { lat_deg: 35.6586, lon_deg: 139.7454, alt_m: 42.0 } },
+            totems: [
+                { name: 'JulianAssaultMech_Totem', category: 'EsportsCombatUnit', position: [0,0,-15], rotation: [0,0,0,1], scale: [1.5,1.5,1.5], trigger_radius_meters: 4.0 },
+                { name: 'CyberBike_CourierRover_Totem', category: 'HarvesterRover', position: [-8,0,-10], rotation: [0,0.707,0,0.707], scale: [1,1,1], trigger_radius_meters: 2.5 },
+                { name: 'Sovereign_Lodge_Hearth_Counter', category: 'LodgeStorefront', store_title: 'Seraphim Sovereign Lodge', position: [12,0,-5], rotation: [0,0,0,1], scale: [1,1,1], trigger_radius_meters: 3.0, escrow_usdc: 500 },
+                { name: 'Siren_Katana_Trophy_Splat', category: 'TournamentTrophy', position: [12,1.2,-5], rotation: [0,0,0,1], scale: [0.8,0.8,0.8], trigger_radius_meters: 1.5, is_gaussian_splat_cloud: true },
+                { name: 'Lemuria_Studio_Holodeck_Room', category: 'NodeVirtualStudioRoom', position: [-14,0,-5], rotation: [0,0,0,1], scale: [1,1,1], trigger_radius_meters: 4.5 }
+            ],
+            acoustic_profiles: [
+                { name: 'Citadel_Esports_Arena_Reverb', position: [0,2,0], volume_m3: 4500, surface_area_m2: 2100, average_absorption_alpha: 0.22, ref_distance_m: 5.0, rolloff_factor: 1.0, is_siren_emitter: true, siren_frequency_hz: 432.0 },
+                { name: 'Lodge_Hearth_Ambient_Lounge', position: [12,1.5,-5], volume_m3: 850, surface_area_m2: 420, average_absorption_alpha: 0.35, ref_distance_m: 2.0, rolloff_factor: 1.2, is_siren_emitter: true, siren_frequency_hz: 528.0 }
+            ],
+            colliders: [
+                { name: 'City_Asphalt_Pacejka_Grid', type: 'PACEJKA_SURFACE', position: [0,-0.05,0], rotation: [0,0,0,1], scale: [150,0.1,150], is_splat_cloud: false },
+                { name: 'Lodge_Sanctuary_Barrier', type: 'STATIC_CONVEX_HULL', position: [12,1.5,-5], rotation: [0,0,0,1], scale: [6,3,6], is_splat_cloud: false }
+            ],
+            prefabs: []
+        };
+        let employees = {};
+        let WORKFORCE = {};
+        let selectedEmpId = null;
+        let savedCamPos = null;
+        let savedCamTarget = null;
+        let camAnim = null;
+
+        let isTouring = false;
+        let tourProgress = 0;
+        let isRecording = false;
+        let recognition = null;
+
+        const defaultCamPos = new THREE.Vector3(-4.5, 22.0, 24.5);
+        const defaultTarget = new THREE.Vector3(1.5, 0.5, 0.5);
+
+        const TOUR_POINTS = [
+            { pos: new THREE.Vector3(-4.5, 22.0, 24.5), target: new THREE.Vector3(1.5, 0.5, 0.5) },
+            { pos: new THREE.Vector3(-7.5, 7.5, 3.8),  target: new THREE.Vector3(-7.5, 1.0, -6.5) },
+            { pos: new THREE.Vector3(5.5, 7.5, 3.8),   target: new THREE.Vector3(5.5, 1.0, -6.5) },
+            { pos: new THREE.Vector3(19.0, 9.0, 4.5),  target: new THREE.Vector3(15.5, 0.8, 1.5) },
+            { pos: new THREE.Vector3(5.5, 6.2, 15.0),  target: new THREE.Vector3(5.5, 0.8, 7.5) },
+            { pos: new THREE.Vector3(-11.5, 5.5, 13.5),target: new THREE.Vector3(-9.5, 0.8, 7.5) }
+        ];
+
+        const ROAM_WAYPOINTS_LEFT = [
+            new THREE.Vector3(-7.5, 0, -5.0),
+            new THREE.Vector3(-5.8, 0, -2.5),
+            new THREE.Vector3(-9.2, 0, -2.5),
+            new THREE.Vector3(-7.5, 0, 2.5),
+            new THREE.Vector3(-7.8, 0, 6.5)
+        ];
+
+        const ROAM_WAYPOINTS_LOUNGE = [
+            new THREE.Vector3(1.5, 0, 4.2),
+            new THREE.Vector3(-4.0, 0, 6.5),
+            new THREE.Vector3(-8.0, 0, 8.2),
+            new THREE.Vector3(2.2, 0, 8.0),
+            new THREE.Vector3(9.5, 0, 5.5)
+        ];
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3000);
+        }
+
+        function setViewTab(activeId) {
+            ['btnViewOrg', 'btnViewGraph', 'btnViewOffice', 'btnViewStudio'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('active', id === activeId);
+            });
+            document.getElementById('navOffice').classList.toggle('active', activeId !== 'btnViewStudio');
+            document.getElementById('navStudio').classList.toggle('active', activeId === 'btnViewStudio');
+        }
+
+        function toggleOrgDrawer(forceOpen) {
+            const d = document.getElementById('org-drawer');
+            if (typeof forceOpen === 'boolean') {
+                d.classList.toggle('collapsed', !forceOpen);
+            } else {
+                d.classList.toggle('collapsed');
+            }
+            setTimeout(onWindowResize, 220);
+        }
+
+        async function init() {
+            try {
+                const res = await fetch('/api/workforce');
+                if (res.ok) WORKFORCE = await res.json();
+                else WORKFORCE = FALLBACK_WORKFORCE;
+            } catch (e) {
+                WORKFORCE = FALLBACK_WORKFORCE;
+            }
+            if (!WORKFORCE || Object.keys(WORKFORCE).length === 0) WORKFORCE = FALLBACK_WORKFORCE;
+
+            const container = document.getElementById('canvas3d');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x090c14);
+            scene.fog = new THREE.FogExp2(0x090c14, 0.011);
+
+            camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 300);
+            camera.position.copy(defaultCamPos);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.07;
+            controls.maxPolarAngle = Math.PI / 2.08;
+            controls.minDistance = 4;
+            controls.maxDistance = 58;
+            controls.target.copy(defaultTarget);
+
+            // Bright crisp architectural office lighting (matching SistaAI video clarity)
+            const ambient = new THREE.AmbientLight(0xdbeafe, 0.95);
+            scene.add(ambient);
+
+            const hemi = new THREE.HemisphereLight(0xbfdbfe, 0x0f172a, 0.75);
+            scene.add(hemi);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            dirLight.position.set(16, 30, 18);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 5;
+            dirLight.shadow.camera.far = 85;
+            const d = 28;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene.add(dirLight);
+
+            const execGlow = new THREE.PointLight(0x38bdf8, 0.9, 24);
+            execGlow.position.set(-7.5, 4.5, -5.0);
+            scene.add(execGlow);
+
+            const tradeGlow = new THREE.PointLight(0x60a5fa, 0.9, 24);
+            tradeGlow.position.set(5.5, 4.5, -5.0);
+            scene.add(tradeGlow);
+
+            officeGroup = new THREE.Group();
+            scene.add(officeGroup);
+            studioGroup = new THREE.Group();
+            studioGroup.visible = false;
+            scene.add(studioGroup);
+
+            buildOfficeFloor();
+            buildAllWorkstations();
+            buildPoolTable(-10.5, 5.5);
+            buildLoungeSofa(-6.5, 10.5);
+            buildPingPongTable(5.5, 7.5);
+            buildConferenceRoom(16.5, -4.5);
+            buildHotDesks(15.5, 6.5);
+            addOfficePlants();
+            buildOfficeHolodeckPortal(0.5, 11.2);
+            buildExecutiveBlackboard(-7.5, -10.65);
+
+            spawnEmployees();
+            populateOrgTree();
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            let pointerDownPos = { x: 0, y: 0 };
+            renderer.domElement.addEventListener('pointerdown', (e) => {
+                pointerDownPos = { x: e.clientX, y: e.clientY };
+                if (activeMode === 'studio' && selectedStudioRef && startGizmoDragIfHit(e)) {
+                    return;
+                }
+            }, false);
+            renderer.domElement.addEventListener('pointermove', (e) => {
+                if (activeGizmoDrag) {
+                    updateGizmoDrag(e);
+                }
+            }, false);
+            renderer.domElement.addEventListener('pointerup', (e) => {
+                if (activeGizmoDrag) {
+                    endGizmoDrag();
+                    return;
+                }
+                const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+                if (dist < 6) onCanvasClick(e);
+            }, false);
+
+            window.addEventListener('keydown', (e) => {
+                if (activeMode !== 'studio') return;
+                if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+                const k = e.key.toLowerCase();
+                if (k === 'w') setGizmoMode('translate');
+                else if (k === 'e') setGizmoMode('rotate');
+                else if (k === 'r') setGizmoMode('scale');
+            });
+
+            window.addEventListener('resize', onWindowResize, false);
+            initWebSpeech();
+            animate();
+            applyDeepLinkHash();
+            window.addEventListener('hashchange', applyDeepLinkHash);
+        }
+
+        function applyDeepLinkHash() {
+            const h = (window.location.hash || '').toLowerCase();
+            if (h === '#blackboard') {
+                setTimeout(() => openBlackboardModal(), 120);
+            } else if (h === '#studio') {
+                setTimeout(() => { if (typeof enterStudioMode === 'function') enterStudioMode(); }, 120);
+            } else if (h === '#office') {
+                if (typeof closeBlackboardModal === 'function') closeBlackboardModal();
+                if (activeMode === 'studio' && typeof exitStudioMode === 'function') exitStudioMode();
+            }
+        }
+
+        function createFloorTileTexture() {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#0d1320';
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = '#182235';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, 254, 254);
+            ctx.strokeStyle = '#121a2a';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(128, 0); ctx.lineTo(128, 256);
+            ctx.moveTo(0, 128); ctx.lineTo(256, 128);
+            ctx.stroke();
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(22, 16);
+            return tex;
+        }
+
+        function makeSignTexture(text, subcolor) {
+            const c = document.createElement('canvas');
+            c.width = 512; c.height = 112;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#0b1325';
+            ctx.beginPath();
+            ctx.roundRect(8, 8, 496, 96, 20);
+            ctx.fill();
+            ctx.strokeStyle = subcolor || '#38bdf8';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            ctx.fillStyle = '#e0f2fe';
+            ctx.font = 'bold 42px Inter, Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 256, 58);
+            const tex = new THREE.CanvasTexture(c);
+            return tex;
+        }
+
+        function makeScreenTexture(tintHex) {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 144;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#060c1a';
+            ctx.fillRect(0, 0, 256, 144);
+            const col = '#' + new THREE.Color(tintHex).getHexString();
+            // Header bar
+            ctx.fillStyle = col;
+            ctx.globalAlpha = 0.25;
+            ctx.fillRect(10, 10, 236, 18);
+            ctx.globalAlpha = 1.0;
+            // Chart bars
+            ctx.fillStyle = col;
+            for (let i = 0; i < 8; i++) {
+                const h = 25 + ((i * 23) % 65);
+                ctx.fillRect(18 + i * 16, 124 - h, 10, h);
+            }
+            // UI text lines
+            ctx.fillStyle = '#94a3b8';
+            for (let r = 0; r < 5; r++) {
+                ctx.fillRect(156, 42 + r * 16, 40 + ((r * 19) % 42), 6);
+            }
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(2, 2, 252, 140);
+            return new THREE.CanvasTexture(c);
+        }
+
+        function addGlassWall(x1, z1, x2, z2, height = 2.6) {
+            const dx = x2 - x1;
+            const dz = z2 - z1;
+            const len = Math.hypot(dx, dz);
+            const angle = Math.atan2(dx, dz);
+            const mx = (x1 + x2) / 2;
+            const mz = (z1 + z2) / 2;
+
+            const glassMat = new THREE.MeshPhysicalMaterial({
+                color: 0x60a5fa,
+                transparent: true,
+                opacity: 0.14,
+                roughness: 0.08,
+                metalness: 0.15,
+                side: THREE.DoubleSide
+            });
+            const pane = new THREE.Mesh(new THREE.BoxGeometry(0.08, height, len), glassMat);
+            pane.position.set(mx, height / 2, mz);
+            pane.rotation.y = angle;
+            officeGroup.add(pane);
+
+            // Glowing cyan neon baseboard + top rail
+            const neonMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+            const baseStrip = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.09, len), neonMat);
+            baseStrip.position.set(mx, 0.045, mz);
+            baseStrip.rotation.y = angle;
+            officeGroup.add(baseStrip);
+
+            const topRailMat = new THREE.MeshBasicMaterial({ color: 0x1d4ed8 });
+            const topStrip = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.06, len), topRailMat);
+            topStrip.position.set(mx, height, mz);
+            topStrip.rotation.y = angle;
+            officeGroup.add(topStrip);
+
+            // Vertical end mullions
+            const postGeo = new THREE.BoxGeometry(0.12, height + 0.04, 0.12);
+            const postMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 });
+            const p1 = new THREE.Mesh(postGeo, postMat);
+            p1.position.set(x1, height / 2, z1);
+            officeGroup.add(p1);
+            const p2 = new THREE.Mesh(postGeo, postMat);
+            p2.position.set(x2, height / 2, z2);
+            officeGroup.add(p2);
+        }
+
+        function buildOfficeFloor() {
+            const floorTex = createFloorTileTexture();
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(46, 34),
+                new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.85, metalness: 0.15 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.set(3, 0, 1);
+            floor.receiveShadow = true;
+            officeGroup.add(floor);
+
+            // Outer Perimeter Glass Boundaries (lower sleek railing height 1.8)
+            addGlassWall(-15.2, -11.8, 21.2, -11.8, 1.9);
+            addGlassWall(-15.2, 13.5, 21.2, 13.5, 1.4);
+            addGlassWall(-15.2, -11.8, -15.2, 13.5, 1.9);
+            addGlassWall(21.2, -11.8, 21.2, 13.5, 1.9);
+
+            // Room Left: Executive & Marketing (-14..-1, -11..1)
+            addGlassWall(-14, -11, -1, -11, 2.6);
+            addGlassWall(-14, -11, -14, 1, 2.6);
+            addGlassWall(-1, -11, -1, 1, 2.6);
+            // Front wall with open doorway (-9.5 to -5.5 open)
+            addGlassWall(-14, 1, -9.5, 1, 2.6);
+            addGlassWall(-5.5, 1, -1, 1, 2.6);
+
+            // Room Right: Trading & Sales (-1..12, -11..1)
+            addGlassWall(-1, -11, 12, -11, 2.6);
+            addGlassWall(12, -11, 12, 1, 2.6);
+            // Front wall with open doorway (3.5 to 7.5 open)
+            addGlassWall(-1, 1, 3.5, 1, 2.6);
+            addGlassWall(7.5, 1, 12, 1, 2.6);
+
+            // Conference Room partial glass screen (x=12..21, z=-11..1)
+            addGlassWall(12, -11, 20.5, -11, 2.6);
+            addGlassWall(20.5, -11, 20.5, 1, 2.6);
+            addGlassWall(12, 1, 14.5, 1, 2.6);
+            addGlassWall(18.0, 1, 20.5, 1, 2.6);
+
+            // Room Signs
+            const signMat1 = new THREE.SpriteMaterial({ map: makeSignTexture('MARKETING • EXEC', '#38bdf8') });
+            const s1 = new THREE.Sprite(signMat1);
+            s1.position.set(-7.5, 3.15, -10.8);
+            s1.scale.set(4.6, 1.0, 1);
+            officeGroup.add(s1);
+
+            const signMat2 = new THREE.SpriteMaterial({ map: makeSignTexture('SALES • TRADING', '#818cf8') });
+            const s2 = new THREE.Sprite(signMat2);
+            s2.position.set(5.5, 3.15, -10.8);
+            s2.scale.set(4.6, 1.0, 1);
+            officeGroup.add(s2);
+
+            const signMat3 = new THREE.SpriteMaterial({ map: makeSignTexture('MEETING ROOM', '#38bdf8') });
+            const s3 = new THREE.Sprite(signMat3);
+            s3.position.set(16.5, 3.15, -10.8);
+            s3.scale.set(4.0, 0.9, 1);
+            officeGroup.add(s3);
+        }
+
+        function buildWorkstation(x, z, rotY, accentHex, isLeader = false) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+            g.rotation.y = rotY;
+
+            const shellColor = isLeader ? 0xdbeafe : 0x2563eb;
+            const shellMat = new THREE.MeshStandardMaterial({ color: shellColor, roughness: 0.35, metalness: 0.25 });
+            const topMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.45, metalness: 0.1 });
+            const neonMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+            // Light slate desktop
+            const deskTop = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.09, 1.15), topMat);
+            deskTop.position.set(0, 0.78, 0.2);
+            deskTop.castShadow = true;
+            deskTop.receiveShadow = true;
+            g.add(deskTop);
+
+            // Curved royal-blue front apron + side wing panels (facing room center +Z)
+            const frontApron = new THREE.Mesh(new THREE.BoxGeometry(2.54, 0.76, 0.1), shellMat);
+            frontApron.position.set(0, 0.38, 0.78);
+            frontApron.castShadow = true;
+            g.add(frontApron);
+
+            const leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.76, 1.15), shellMat);
+            leftWing.position.set(-1.22, 0.38, 0.22);
+            leftWing.castShadow = true;
+            g.add(leftWing);
+
+            const rightWing = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.76, 1.15), shellMat);
+            rightWing.position.set(1.22, 0.38, 0.22);
+            rightWing.castShadow = true;
+            g.add(rightWing);
+
+            // Glowing cyan accent trim along desk front top edge
+            const frontGlow = new THREE.Mesh(new THREE.BoxGeometry(2.56, 0.04, 0.04), neonMat);
+            frontGlow.position.set(0, 0.79, 0.81);
+            g.add(frontGlow);
+
+            // Triple Monitor Cockpit Array facing -Z (toward seated worker)
+            const screenTex = makeScreenTexture(accentHex);
+            const bezelMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.3, metalness: 0.5 });
+            const screenMat = new THREE.MeshBasicMaterial({ map: screenTex });
+            const standMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8, roughness: 0.3 });
+
+            // Stand mast
+            const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.42, 8), standMat);
+            mast.position.set(0, 1.0, 0.45);
+            g.add(mast);
+
+            const configs = [
+                { px: 0,    pz: 0.40, ry: 0,     w: 0.88, h: 0.50 },
+                { px: -0.82, pz: 0.26, ry: -0.35, w: 0.72, h: 0.48 },
+                { px: 0.82,  pz: 0.26, ry: 0.35,  w: 0.72, h: 0.48 }
+            ];
+            configs.forEach(cfg => {
+                const mGroup = new THREE.Group();
+                mGroup.position.set(cfg.px, 1.24, cfg.pz);
+                mGroup.rotation.y = cfg.ry;
+                const bezel = new THREE.Mesh(new THREE.BoxGeometry(cfg.w, cfg.h, 0.04), bezelMat);
+                bezel.castShadow = true;
+                mGroup.add(bezel);
+                const scr = new THREE.Mesh(new THREE.PlaneGeometry(cfg.w - 0.05, cfg.h - 0.05), screenMat);
+                scr.position.z = -0.022;
+                scr.rotation.y = Math.PI; // face -Z toward person
+                mGroup.add(scr);
+                g.add(mGroup);
+            });
+
+            // Keyboard & Mouse Pad
+            const kb = new THREE.Mesh(
+                new THREE.BoxGeometry(0.65, 0.025, 0.22),
+                new THREE.MeshStandardMaterial({ color: 0x0f172a })
+            );
+            kb.position.set(-0.08, 0.84, -0.05);
+            g.add(kb);
+
+            // Ergonomic Office Chair at local z = -0.72 facing +Z
+            const chair = new THREE.Group();
+            chair.position.set(0, 0, -0.72);
+            const cSeatMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.6 });
+            const cBaseMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.7, roughness: 0.3 });
+
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.42, 8), cBaseMat);
+            stem.position.y = 0.22;
+            chair.add(stem);
+
+            for (let b = 0; b < 5; b++) {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.5), cBaseMat);
+                leg.position.y = 0.04;
+                leg.rotation.y = (b * Math.PI * 2) / 5;
+                chair.add(leg);
+            }
+
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.11, 0.72), cSeatMat);
+            seat.position.y = 0.46;
+            seat.castShadow = true;
+            chair.add(seat);
+
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.85, 0.1), cSeatMat);
+            back.position.set(0, 0.90, -0.32);
+            back.castShadow = true;
+            chair.add(back);
+
+            const headRest = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.2, 0.09), cSeatMat);
+            headRest.position.set(0, 1.42, -0.31);
+            chair.add(headRest);
+
+            g.add(chair);
+            officeGroup.add(g);
+        }
+
+        function buildAllWorkstations() {
+            // Room Left (Executive & Marketing): 7 desks
+            buildWorkstation(-7.5, -8.5, 0, 0x38bdf8, true);
+            [-7.2, -3.8, -0.4].forEach((zPos, i) => {
+                buildWorkstation(-12.3, zPos, Math.PI / 2, [0xf43f5e, 0xa855f7, 0x06b6d4][i], false);
+                buildWorkstation(-2.7, zPos, -Math.PI / 2, [0xeab308, 0xec4899, 0x38bdf8][i], false);
+            });
+
+            // Room Right (Trading & Sales): 7 desks
+            buildWorkstation(5.5, -8.5, 0, 0xc084fc, true);
+            [-7.2, -3.8, -0.4].forEach((zPos, i) => {
+                buildWorkstation(1.2, zPos, Math.PI / 2, [0x22c55e, 0x3b82f6, 0x14b8a6][i], false);
+                buildWorkstation(10.3, zPos, -Math.PI / 2, [0x8b5cf6, 0x22c55e, 0x38bdf8][i], false);
+            });
+        }
+
+        function buildPoolTable(x, z) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+
+            const railMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.45, metalness: 0.3 });
+            const feltMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.7 });
+
+            // Legs
+            [[-1.85, -0.9], [1.85, -0.9], [-1.85, 0.9], [1.85, 0.9]].forEach(p => {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.74, 0.18), railMat);
+                leg.position.set(p[0], 0.37, p[1]);
+                leg.castShadow = true;
+                g.add(leg);
+            });
+
+            // Outer Frame
+            const frame = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.24, 2.35), railMat);
+            frame.position.y = 0.78;
+            frame.castShadow = true;
+            g.add(frame);
+
+            // Royal Blue Felt Bed
+            const felt = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.06, 1.95), feltMat);
+            felt.position.y = 0.89;
+            felt.receiveShadow = true;
+            g.add(felt);
+
+            // 6 Pockets
+            const pMat = new THREE.MeshBasicMaterial({ color: 0x020617 });
+            const pGeo = new THREE.CylinderGeometry(0.11, 0.11, 0.08, 12);
+            [[-1.92, -0.94], [0, -0.96], [1.92, -0.94], [-1.92, 0.94], [0, 0.96], [1.92, 0.94]].forEach(p => {
+                const pocket = new THREE.Mesh(pGeo, pMat);
+                pocket.position.set(p[0], 0.90, p[1]);
+                g.add(pocket);
+            });
+
+            // Triangle Rack of Colored Billiard Balls + Cue Ball
+            const ballColors = [0xfef08a, 0x3b82f6, 0xef4444, 0xa855f7, 0xf97316, 0x22c55e, 0x991b1b, 0x111827, 0xeab308, 0x06b6d4];
+            let idx = 0;
+            for (let row = 0; row < 4; row++) {
+                for (let col = 0; col <= row; col++) {
+                    const ball = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.062, 12, 12),
+                        new THREE.MeshStandardMaterial({ color: ballColors[idx % ballColors.length], roughness: 0.2, metalness: 0.1 })
+                    );
+                    ball.position.set(0.75 + row * 0.115, 0.96, (col - row * 0.5) * 0.13);
+                    g.add(ball);
+                    idx++;
+                }
+            }
+            const cueBall = new THREE.Mesh(
+                new THREE.SphereGeometry(0.062, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.15 })
+            );
+            cueBall.position.set(-1.05, 0.96, 0.05);
+            g.add(cueBall);
+
+            // Cue Stick resting on rail
+            const cue = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.015, 0.025, 2.2, 8),
+                new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.5 })
+            );
+            cue.rotation.z = Math.PI / 2;
+            cue.rotation.y = 0.08;
+            cue.position.set(-0.2, 0.93, 1.05);
+            g.add(cue);
+
+            // Standing Floor Lamp near Pool Table
+            const lampMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 2.7, 10), lampMat);
+            pole.position.set(-2.6, 1.35, -1.5);
+            g.add(pole);
+            const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.35, 0.08, 16), lampMat);
+            lampBase.position.set(-2.6, 0.04, -1.5);
+            g.add(lampBase);
+            const shade = new THREE.Mesh(
+                new THREE.ConeGeometry(0.38, 0.35, 16, 1, true),
+                new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x16a34a, emissiveIntensity: 0.45, side: THREE.DoubleSide })
+            );
+            shade.position.set(-2.6, 2.65, -1.5);
+            g.add(shade);
+            const lampLight = new THREE.PointLight(0x86efac, 0.65, 8);
+            lampLight.position.set(-2.6, 2.35, -1.5);
+            g.add(lampLight);
+
+            officeGroup.add(g);
+        }
+
+        function buildLoungeSofa(x, z) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+
+            // Area Rug
+            const rug = new THREE.Mesh(
+                new THREE.BoxGeometry(6.2, 0.03, 4.4),
+                new THREE.MeshStandardMaterial({ color: 0x161f33, roughness: 0.95 })
+            );
+            rug.position.set(0, 0.015, -0.3);
+            rug.receiveShadow = true;
+            g.add(rug);
+
+            const sofaBaseMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.75 });
+            const cushionMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85 });
+
+            // Main Section along Z+
+            const baseMain = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.32, 1.3), sofaBaseMat);
+            baseMain.position.set(0, 0.20, 0.5);
+            baseMain.castShadow = true;
+            g.add(baseMain);
+            const backMain = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.75, 0.28), cushionMat);
+            backMain.position.set(0, 0.58, 1.05);
+            backMain.castShadow = true;
+            g.add(backMain);
+
+            // L-Return Chaise on right
+            const chaise = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.32, 2.6), sofaBaseMat);
+            chaise.position.set(1.62, 0.20, -0.15);
+            chaise.castShadow = true;
+            g.add(chaise);
+
+            // Seat Cushions
+            for (let i = -1.45; i <= 1.5; i += 1.48) {
+                const cush = new THREE.Mesh(new THREE.BoxGeometry(1.38, 0.18, 1.05), cushionMat);
+                cush.position.set(i, 0.44, 0.4);
+                g.add(cush);
+            }
+
+            // Glass Coffee Table
+            const cTableLeg = new THREE.Mesh(
+                new THREE.BoxGeometry(1.8, 0.36, 0.9),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b })
+            );
+            cTableLeg.position.set(-0.5, 0.18, -1.2);
+            g.add(cTableLeg);
+            const cTableGlass = new THREE.Mesh(
+                new THREE.BoxGeometry(2.1, 0.05, 1.1),
+                new THREE.MeshPhysicalMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.45, roughness: 0.1 })
+            );
+            cTableGlass.position.set(-0.5, 0.40, -1.2);
+            g.add(cTableGlass);
+
+            officeGroup.add(g);
+        }
+
+        function buildPingPongTable(x, z) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+
+            const c = document.createElement('canvas');
+            c.width = 512; c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#1d4ed8';
+            ctx.fillRect(0, 0, 512, 256);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(4, 4, 504, 248);
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, 128); ctx.lineTo(512, 128);
+            ctx.moveTo(256, 0); ctx.lineTo(256, 256);
+            ctx.stroke();
+            const ttTex = new THREE.CanvasTexture(c);
+
+            const top = new THREE.Mesh(
+                new THREE.BoxGeometry(3.8, 0.09, 2.1),
+                new THREE.MeshStandardMaterial({ map: ttTex, roughness: 0.45 })
+            );
+            top.position.y = 0.80;
+            top.castShadow = true;
+            g.add(top);
+
+            // Legs
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.7 });
+            [[-1.4, -0.8], [1.4, -0.8], [-1.4, 0.8], [1.4, 0.8]].forEach(p => {
+                const l = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.78, 8), legMat);
+                l.position.set(p[0], 0.39, p[1]);
+                g.add(l);
+            });
+
+            // Net & Posts
+            const net = new THREE.Mesh(
+                new THREE.BoxGeometry(0.03, 0.24, 2.2),
+                new THREE.MeshBasicMaterial({ color: 0xe2e8f0, transparent: true, opacity: 0.85 })
+            );
+            net.position.y = 0.96;
+            g.add(net);
+
+            // Two Paddles & Ball
+            const paddleMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+            const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.02, 14), paddleMat);
+            p1.position.set(-1.55, 0.86, 0.45);
+            g.add(p1);
+            const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.02, 14), paddleMat);
+            p2.position.set(1.55, 0.86, -0.45);
+            g.add(p2);
+
+            const ball = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+            ball.position.set(0.45, 0.88, 0.2);
+            g.add(ball);
+
+            officeGroup.add(g);
+        }
+
+        function buildConferenceRoom(x, z) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+
+            const ped = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.45, 0.7, 0.76, 16),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.6 })
+            );
+            ped.position.y = 0.38;
+            g.add(ped);
+
+            const tableTop = new THREE.Mesh(
+                new THREE.CylinderGeometry(2.5, 2.5, 0.1, 32),
+                new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4, metalness: 0.2 })
+            );
+            tableTop.position.y = 0.78;
+            tableTop.castShadow = true;
+            tableTop.receiveShadow = true;
+            g.add(tableTop);
+
+            const centerGlow = new THREE.Mesh(
+                new THREE.RingGeometry(0.35, 0.55, 24),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide })
+            );
+            centerGlow.rotation.x = -Math.PI / 2;
+            centerGlow.position.y = 0.84;
+            g.add(centerGlow);
+
+            const cMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.6 });
+            for (let i = 0; i < 6; i++) {
+                const a = (i * Math.PI * 2) / 6;
+                const chair = new THREE.Group();
+                chair.position.set(Math.sin(a) * 3.1, 0, Math.cos(a) * 3.1);
+                chair.rotation.y = a + Math.PI;
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.1, 0.65), cMat);
+                seat.position.y = 0.45;
+                chair.add(seat);
+                const back = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.7, 0.09), cMat);
+                back.position.set(0, 0.82, -0.28);
+                chair.add(back);
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.42, 8), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+                post.position.y = 0.22;
+                chair.add(post);
+                g.add(chair);
+            }
+
+            officeGroup.add(g);
+        }
+
+        function buildHotDesks(x, z) {
+            const podMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.5 });
+            const trimMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.4 });
+            const chairMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+
+            [[-1.3, -1.1], [1.3, -1.1], [-1.3, 1.1], [1.3, 1.1]].forEach(off => {
+                const pod = new THREE.Group();
+                pod.position.set(x + off[0], 0, z + off[1]);
+
+                const desk = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.08, 1.1), podMat);
+                desk.position.y = 0.76;
+                desk.castShadow = true;
+                pod.add(desk);
+
+                const divider = new THREE.Mesh(new THREE.BoxGeometry(1.72, 0.42, 0.06), trimMat);
+                divider.position.set(0, 0.96, -0.52);
+                pod.add(divider);
+
+                const screen = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.03), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+                screen.position.set(0, 1.0, -0.35);
+                pod.add(screen);
+
+                const chair = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.5, 0.55), chairMat);
+                chair.position.set(0, 0.35, 0.65);
+                pod.add(chair);
+
+                officeGroup.add(pod);
+            });
+        }
+
+        function addOfficePlants() {
+            const potMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+            const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.6 });
+            const locs = [[-13.5, 2.2], [-1.8, 2.2], [11.2, 2.2], [-14.2, 12.2], [19.8, 12.2]];
+            locs.forEach(p => {
+                const pg = new THREE.Group();
+                pg.position.set(p[0], 0, p[1]);
+                const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.24, 0.5, 12), potMat);
+                pot.position.y = 0.25;
+                pg.add(pot);
+                const bush1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.45, 0), leafMat);
+                bush1.position.y = 0.78;
+                pg.add(bush1);
+                const bush2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.32, 0), leafMat);
+                bush2.position.set(0.15, 1.05, -0.1);
+                pg.add(bush2);
+                officeGroup.add(pg);
+            });
+        }
+
+        function createNameLabelSprite(text, colorHex) {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 64;
+            const ctx = c.getContext('2d');
+            ctx.font = 'bold 28px Inter, Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.95)';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillText(text, 128, 32);
+            const tex = new THREE.CanvasTexture(c);
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+            sp.scale.set(2.1, 0.52, 1);
+            return sp;
+        }
+
+        function createSpeechSprite(text) {
+            const c = document.createElement('canvas');
+            c.width = 360; c.height = 72;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = 'rgba(10, 16, 28, 0.90)';
+            ctx.beginPath();
+            ctx.roundRect(10, 8, 340, 56, 16);
+            ctx.fill();
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '600 22px Inter, Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const clipped = text.length > 26 ? text.slice(0, 24) + '...' : text;
+            ctx.fillText(clipped, 180, 36);
+            const tex = new THREE.CanvasTexture(c);
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+            sp.scale.set(2.6, 0.52, 1);
+            return sp;
+        }
+
+        function spawnEmployees() {
+            for (const id in WORKFORCE) {
+                const emp = WORKFORCE[id];
+                const group = new THREE.Group();
+                group.position.set(emp.desk_pos[0], 0, emp.desk_pos[2]);
+                group.rotation.y = emp.rot_y || 0;
+
+                const mainMat = new THREE.MeshStandardMaterial({ color: emp.color, metalness: 0.35, roughness: 0.35 });
+                const visorMat = new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.6, roughness: 0.2 });
+
+                // Legs
+                const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.42, 0.20), mainMat);
+                leftLeg.position.set(-0.15, 0.21, 0);
+                leftLeg.userData = { empId: id };
+                group.add(leftLeg);
+
+                const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.42, 0.20), mainMat);
+                rightLeg.position.set(0.15, 0.21, 0);
+                rightLeg.userData = { empId: id };
+                group.add(rightLeg);
+
+                // Torso
+                const torso = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.56, 0.38), mainMat);
+                torso.position.y = 0.70;
+                torso.castShadow = true;
+                torso.userData = { empId: id };
+                group.add(torso);
+
+                const chestBadge = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.28, 0.20),
+                    new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+                );
+                chestBadge.position.set(0, 0.72, 0.195);
+                chestBadge.userData = { empId: id };
+                group.add(chestBadge);
+
+                // Arms (pivoted at shoulder)
+                const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.44, 0.16), mainMat);
+                leftArm.position.set(-0.37, 0.72, 0.08);
+                leftArm.userData = { empId: id };
+                group.add(leftArm);
+
+                const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.44, 0.16), mainMat);
+                rightArm.position.set(0.37, 0.72, 0.08);
+                rightArm.userData = { empId: id };
+                group.add(rightArm);
+
+                // Monitor-style Robot Head
+                const head = new THREE.Group();
+                head.position.y = 1.24;
+                const headShell = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.44, 0.44), mainMat);
+                headShell.castShadow = true;
+                headShell.userData = { empId: id };
+                head.add(headShell);
+
+                const faceVisor = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.30, 0.04), visorMat);
+                faceVisor.position.set(0, 0, 0.21);
+                faceVisor.userData = { empId: id };
+                head.add(faceVisor);
+
+                const eyeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+                const leftEye = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.02), eyeMat);
+                leftEye.position.set(-0.10, 0.02, 0.235);
+                head.add(leftEye);
+                const rightEye = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.02), eyeMat);
+                rightEye.position.set(0.10, 0.02, 0.235);
+                head.add(rightEye);
+
+                // Side Ear Pods
+                const earL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.08, 10), visorMat);
+                earL.rotation.z = Math.PI / 2;
+                earL.position.set(-0.32, 0, 0);
+                head.add(earL);
+                const earR = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.08, 10), visorMat);
+                earR.rotation.z = Math.PI / 2;
+                earR.position.set(0.32, 0, 0);
+                head.add(earR);
+
+                // Antenna & Status Light
+                const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.28, 8), visorMat);
+                ant.position.y = 0.34;
+                head.add(ant);
+
+                const bulbColor = emp.status === 'working' ? 0x22c55e : (emp.status === 'waiting' ? 0xeab308 : 0x38bdf8);
+                const bulbMat = new THREE.MeshBasicMaterial({ color: bulbColor });
+                const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), bulbMat);
+                bulb.position.y = 0.52;
+                bulb.userData = { empId: id };
+                head.add(bulb);
+
+                group.add(head);
+
+                // Floor Glow Disc + Pulsing Status Ring
+                const disc = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.62, 24),
+                    new THREE.MeshBasicMaterial({ color: bulbColor, transparent: true, opacity: 0.16, side: THREE.DoubleSide })
+                );
+                disc.rotation.x = -Math.PI / 2;
+                disc.position.y = 0.02;
+                group.add(disc);
+
+                const ring = new THREE.Mesh(
+                    new THREE.RingGeometry(0.58, 0.72, 28),
+                    new THREE.MeshBasicMaterial({ color: bulbColor, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
+                );
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.y = 0.026;
+                group.add(ring);
+
+                // Floating Floor Nameplate under character
+                const nameSprite = createNameLabelSprite(emp.name, emp.color);
+                nameSprite.position.set(0, 0.22, 0.92);
+                group.add(nameSprite);
+
+                // Task/Speech Bubble above character
+                const speechSprite = createSpeechSprite(emp.speech || emp.activity);
+                speechSprite.position.set(0, 2.25, 0);
+                speechSprite.visible = emp.status === 'working' || emp.status === 'waiting';
+                group.add(speechSprite);
+
+                officeGroup.add(group);
+
+                const wps = emp.room.includes('Executive') ? ROAM_WAYPOINTS_LEFT : ROAM_WAYPOINTS_LOUNGE;
+                employees[id] = {
+                    group, head, leftArm, rightArm, leftLeg, rightLeg,
+                    ring, disc, bulb, speechSprite,
+                    data: emp,
+                    frozen: false,
+                    roamIdx: Math.floor(Math.random() * wps.length),
+                    roamPauseUntil: 0,
+                    waypoints: wps
+                };
+            }
+        }
+
+        function refreshSpeechBubble(id) {
+            const empObj = employees[id];
+            if (!empObj) return;
+            const emp = WORKFORCE[id];
+            empObj.group.remove(empObj.speechSprite);
+            empObj.speechSprite = createSpeechSprite(emp.speech || emp.activity);
+            empObj.speechSprite.position.set(0, 2.25, 0);
+            empObj.speechSprite.visible = emp.status === 'working' || emp.status === 'waiting';
+            empObj.group.add(empObj.speechSprite);
+
+            const bulbColor = emp.status === 'working' ? 0x22c55e : (emp.status === 'waiting' ? 0xeab308 : 0x38bdf8);
+            empObj.bulb.material.color.setHex(bulbColor);
+            empObj.ring.material.color.setHex(bulbColor);
+            empObj.disc.material.color.setHex(bulbColor);
+        }
+
+        function populateOrgTree() {
+            const query = (document.getElementById('empSearch').value || '').toLowerCase();
+            const container = document.getElementById('orgTree');
+            container.innerHTML = '';
+
+            const teams = {};
+            let total = 0;
+            for (const id in WORKFORCE) {
+                const emp = WORKFORCE[id];
+                total++;
+                if (query && !emp.name.toLowerCase().includes(query) && !emp.role.toLowerCase().includes(query)) continue;
+                if (!teams[emp.team]) teams[emp.team] = [];
+                teams[emp.team].push(emp);
+            }
+            document.getElementById('empCountBadge').innerText = total;
+
+            for (const teamName in teams) {
+                const block = document.createElement('div');
+                block.className = 'team-block';
+
+                // Sort team leaders first
+                const list = teams[teamName].sort((a, b) => (b.is_leader ? 1 : 0) - (a.is_leader ? 1 : 0));
+
+                const hdr = document.createElement('div');
+                hdr.className = 'team-header';
+                hdr.innerHTML = `<span>▾ ${teamName}</span><span style="color:var(--muted);font-size:10px;">${list.length}</span>`;
+                block.appendChild(hdr);
+
+                list.forEach(emp => {
+                    const row = document.createElement('div');
+                    row.className = 'emp-row' + (selectedEmpId === emp.id ? ' selected' : '');
+                    row.onclick = () => selectEmployee(emp.id);
+
+                    const dotColor = emp.status === 'working' ? 'var(--green)' : (emp.status === 'waiting' ? 'var(--amber)' : 'var(--accent)');
+                    row.innerHTML = `
+                        <div class="emp-avatar-wrap" style="border:1.5px solid ${emp.color};">
+                            <span>${emp.avatar}</span>
+                            <div class="emp-status-dot" style="background:${dotColor};"></div>
+                        </div>
+                        <div class="emp-meta">
+                            <div class="emp-name">${emp.name}</div>
+                            <div class="emp-role">${emp.role}</div>
+                        </div>
+                    `;
+                    block.appendChild(row);
+                });
+                container.appendChild(block);
+            }
+        }
+
+        function filterOrgTree() {
+            populateOrgTree();
+        }
+
+        function onCanvasClick(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const roots = activeMode === 'studio' ? studioGroup.children : officeGroup.children;
+            const intersects = raycaster.intersectObjects(roots, true);
+
+            for (let i = 0; i < intersects.length; i++) {
+                let obj = intersects[i].object;
+                while (obj) {
+                    if (activeMode === 'studio' && obj.userData && obj.userData.studioRef) {
+                        selectStudioEntity(obj.userData.studioRef.kind, obj.userData.studioRef.index);
+                        return;
+                    }
+                    if (activeMode === 'office' && obj.userData && obj.userData.enterHeavenlyBoundStudio) {
+                        enterStudioMode('heavenlybound');
+                        return;
+                    }
+                    if (activeMode === 'office' && obj.userData && obj.userData.openBlackboard) {
+                        openBlackboardModal();
+                        return;
+                    }
+                    if (activeMode === 'office' && obj.userData && obj.userData.empId) {
+                        selectEmployee(obj.userData.empId);
+                        return;
+                    }
+                    obj = obj.parent;
+                }
+            }
+        }
+
+        function startCameraGlide(toPos, toTarget) {
+            camAnim = {
+                fromPos: camera.position.clone(),
+                fromTarget: controls.target.clone(),
+                toPos: toPos.clone(),
+                toTarget: toTarget.clone(),
+                t: 0
+            };
+        }
+
+        function selectEmployee(empId) {
+            if (!WORKFORCE[empId]) return;
+            if (activeMode === 'studio') exitStudioMode();
+
+            if (selectedEmpId && employees[selectedEmpId]) {
+                employees[selectedEmpId].frozen = false;
+            }
+            if (!selectedEmpId) {
+                savedCamPos = camera.position.clone();
+                savedCamTarget = controls.target.clone();
+            }
+
+            isTouring = false;
+            document.getElementById('tourBtn').classList.remove('active');
+
+            selectedEmpId = empId;
+            const emp = WORKFORCE[empId];
+            const empObj = employees[empId];
+            empObj.frozen = true;
+
+            document.getElementById('cAvatar').innerText = emp.avatar;
+            document.getElementById('cAvatar').style.borderColor = emp.color;
+            document.getElementById('cName').innerText = emp.name;
+            document.getElementById('cRole').innerText = emp.role;
+            document.getElementById('cActivity').innerText = emp.activity;
+            document.getElementById('cNode').innerText = emp.node;
+            document.getElementById('cLastDirective').innerText = emp.last_directive || 'None yet';
+
+            const statusEl = document.getElementById('cStatus');
+            if (emp.status === 'working') {
+                statusEl.innerText = '● WORKING';
+                statusEl.style.color = 'var(--green)';
+            } else if (emp.status === 'waiting') {
+                statusEl.innerText = '● AWAITING INPUT';
+                statusEl.style.color = 'var(--amber)';
+            } else {
+                statusEl.innerText = '● AVAILABLE';
+                statusEl.style.color = 'var(--accent)';
+            }
+
+            const locPrefix = emp.status === 'available' ? 'Roaming' : 'At Desk';
+            document.getElementById('cLocation').innerText = `${locPrefix} • ${emp.room}`;
+            document.getElementById('cMsgInput').placeholder = `Message ${emp.name.replace(' ★', '')}...`;
+            document.getElementById('charCard').style.display = 'flex';
+            populateOrgTree();
+
+            // Glide camera along current viewing angle to conversation shot
+            const p = empObj.group.position;
+            const targetPt = new THREE.Vector3(p.x, 1.0, p.z);
+            const curDir = new THREE.Vector3().subVectors(camera.position, controls.target);
+            curDir.y = 0;
+            if (curDir.lengthSq() < 0.01) curDir.set(0, 0, 1);
+            curDir.normalize();
+            const shotPos = targetPt.clone().add(curDir.multiplyScalar(5.8));
+            shotPos.y = 3.6;
+            startCameraGlide(shotPos, targetPt);
+        }
+
+        function selectFirstOrDefault() {
+            if (selectedEmpId) return;
+            const first = Object.keys(WORKFORCE)[0] || 'triton';
+            selectEmployee(first);
+        }
+
+        function closeCard() {
+            if (selectedEmpId && employees[selectedEmpId]) {
+                employees[selectedEmpId].frozen = false;
+            }
+            document.getElementById('charCard').style.display = 'none';
+            selectedEmpId = null;
+            populateOrgTree();
+            if (savedCamPos && savedCamTarget) {
+                startCameraGlide(savedCamPos, savedCamTarget);
+                savedCamPos = null;
+                savedCamTarget = null;
+            }
+        }
+
+        function resetView() {
+            if (selectedEmpId && employees[selectedEmpId]) {
+                employees[selectedEmpId].frozen = false;
+            }
+            document.getElementById('charCard').style.display = 'none';
+            selectedEmpId = null;
+            savedCamPos = null;
+            savedCamTarget = null;
+            isTouring = false;
+            document.getElementById('tourBtn').classList.remove('active');
+            populateOrgTree();
+            startCameraGlide(defaultCamPos, defaultTarget);
+        }
+
+        function focusOverhead() {
+            isTouring = false;
+            document.getElementById('tourBtn').classList.remove('active');
+            startCameraGlide(new THREE.Vector3(2.5, 34, 6), new THREE.Vector3(2.5, 0, 0));
+        }
+
+        function focusRoom(room) {
+            isTouring = false;
+            document.getElementById('tourBtn').classList.remove('active');
+            if (room === 'exec') startCameraGlide(new THREE.Vector3(-7.5, 8.5, 5.5), new THREE.Vector3(-7.5, 0.8, -5.5));
+            else if (room === 'trade') startCameraGlide(new THREE.Vector3(5.5, 8.5, 5.5), new THREE.Vector3(5.5, 0.8, -5.5));
+            else if (room === 'lounge') startCameraGlide(new THREE.Vector3(-1.5, 7.5, 16.5), new THREE.Vector3(-2.5, 0.8, 7.5));
+            else if (room === 'conf') startCameraGlide(new THREE.Vector3(16.5, 8.5, 5.0), new THREE.Vector3(16.5, 0.8, -4.5));
+        }
+
+        function zoomCamera(factor) {
+            const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+            offset.multiplyScalar(factor);
+            if (offset.length() >= controls.minDistance && offset.length() <= controls.maxDistance) {
+                camera.position.copy(controls.target).add(offset);
+            }
+        }
+
+        function toggleTour() {
+            isTouring = !isTouring;
+            document.getElementById('tourBtn').classList.toggle('active', isTouring);
+            if (isTouring && selectedEmpId) closeCard();
+        }
+
+        function shareClip() {
+            renderer.render(scene, camera);
+            const url = renderer.domElement.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tr7n7y7-office-snapshot-${Date.now()}.png`;
+            a.click();
+            showToast('Captured 3D Office Snapshot!');
+        }
+
+        function initWebSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                recognition.onresult = (e) => {
+                    const txt = e.results[0][0].transcript;
+                    handleWhisperResult(txt);
+                    toggleWhisperFlow(false);
+                };
+                recognition.onerror = () => toggleWhisperFlow(false);
+                recognition.onend = () => { if (isRecording) toggleWhisperFlow(false); };
+            }
+        }
+
+        function handleWhisperResult(txt) {
+            if (!selectedEmpId) selectEmployee('triton');
+            document.getElementById('cMsgInput').value = txt;
+            fetch('/api/whisper', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transcript: txt, target_id: selectedEmpId || 'triton' })
+            }).catch(() => {});
+            showToast('WhisperFlow transcribed: "' + txt + '"');
+        }
+
+        function toggleWhisperFlow(forceState) {
+            isRecording = typeof forceState === 'boolean' ? forceState : !isRecording;
+            const btn = document.getElementById('whisperBtn');
+            const label = document.getElementById('whisperLabel');
+
+            if (isRecording) {
+                btn.classList.add('recording');
+                label.innerText = 'Listening...';
+                if (recognition) {
+                    try { recognition.start(); } catch (e) {}
+                } else {
+                    setTimeout(() => {
+                        if (isRecording) {
+                            toggleWhisperFlow(false);
+                            handleWhisperResult('Audit latest blocks and verify node consensus stability.');
+                        }
+                    }, 1200);
+                }
+            } else {
+                btn.classList.remove('recording');
+                label.innerText = 'WhisperFlow';
+                if (recognition) {
+                    try { recognition.stop(); } catch (e) {}
+                }
+            }
+        }
+
+        function sendInstruction() {
+            const input = document.getElementById('cMsgInput');
+            const directive = input.value.trim();
+            if (!directive) return;
+            const targetId = selectedEmpId || 'triton';
+
+            fetch('/api/dispatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target_id: targetId,
+                    directive: directive,
+                    sender: 'Operator_Workstation'
+                })
+            })
+            .then(r => r.json())
+            .then(d => {
+                input.value = '';
+                if (d.workforce) {
+                    WORKFORCE = d.workforce;
+                    if (employees[targetId]) {
+                        employees[targetId].data = WORKFORCE[targetId];
+                        refreshSpeechBubble(targetId);
+                    }
+                    document.getElementById('cActivity').innerText = WORKFORCE[targetId].activity;
+                    document.getElementById('cLastDirective').innerText = WORKFORCE[targetId].last_directive;
+                    document.getElementById('cStatus').innerText = '● WORKING';
+                    document.getElementById('cStatus').style.color = 'var(--green)';
+                    populateOrgTree();
+                }
+                showToast(`Directive dispatched to ${WORKFORCE[targetId].name}`);
+            })
+            .catch(() => {
+                showToast('Dispatch queued');
+                input.value = '';
+            });
+        }
+
+        function openTasksModal() {
+            document.getElementById('modalTitle').innerText = 'Team 7 Task Board & Active Invariants';
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '';
+            for (const id in WORKFORCE) {
+                const e = WORKFORCE[id];
+                const el = document.createElement('div');
+                el.className = 'log-row';
+                el.innerHTML = `
+                    <div>
+                        <div style="font-weight:700;color:#fff;">${e.avatar} ${e.name} <span style="color:var(--muted);font-weight:400;">• ${e.room}</span></div>
+                        <div style="color:#cbd5e1;margin-top:3px;">${e.activity}</div>
+                        <div style="color:var(--accent);font-size:11px;margin-top:2px;">Last Directive: ${e.last_directive}</div>
+                    </div>
+                    <span style="color:${e.status==='working'?'var(--green)':'var(--amber)'};font-weight:700;text-transform:uppercase;font-size:11px;">${e.status}</span>
+                `;
+                body.appendChild(el);
+            }
+            document.getElementById('infoModal').style.display = 'flex';
+        }
+
+        async function openLogsModal() {
+            document.getElementById('modalTitle').innerText = 'Audit Event Feed (/api/logs)';
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '<div style="color:var(--muted);">Loading audit events...</div>';
+            document.getElementById('infoModal').style.display = 'flex';
+            try {
+                const res = await fetch('/api/logs');
+                const logs = await res.json();
+                body.innerHTML = logs.length ? '' : '<div style="color:var(--muted);">No directives or WhisperFlow intents recorded yet.</div>';
+                logs.slice().reverse().forEach(entry => {
+                    const el = document.createElement('div');
+                    el.className = 'log-row';
+                    el.innerHTML = `
+                        <div>
+                            <div style="color:var(--accent);font-weight:700;">${entry.action} → ${entry.target_id}</div>
+                            <div style="color:#e2e8f0;margin-top:2px;">${entry.directive || entry.transcript || ''}</div>
+                        </div>
+                        <div style="color:var(--muted);font-size:11px;">${entry.sender || 'WhisperFlow'}</div>
+                    `;
+                    body.appendChild(el);
+                });
+            } catch (e) {
+                body.innerHTML = '<div style="color:var(--red);">Failed to fetch /api/logs</div>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas3d');
+            if (!container || container.clientWidth === 0) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const now = Date.now();
+            const t = now * 0.004;
+
+            // Smooth camera glide
+            if (camAnim) {
+                camAnim.t = Math.min(1, camAnim.t + 0.06);
+                const ease = 1 - Math.pow(1 - camAnim.t, 3);
+                camera.position.lerpVectors(camAnim.fromPos, camAnim.toPos, ease);
+                controls.target.lerpVectors(camAnim.fromTarget, camAnim.toTarget, ease);
+                if (camAnim.t >= 1) camAnim = null;
+            }
+
+            // Cinematic Tour loop
+            if (isTouring) {
+                tourProgress += 0.0022;
+                const segCount = TOUR_POINTS.length;
+                const scaled = (tourProgress % 1) * segCount;
+                const i0 = Math.floor(scaled) % segCount;
+                const i1 = (i0 + 1) % segCount;
+                const frac = scaled - Math.floor(scaled);
+                const smooth = frac * frac * (3 - 2 * frac);
+                camera.position.lerpVectors(TOUR_POINTS[i0].pos, TOUR_POINTS[i1].pos, smooth);
+                controls.target.lerpVectors(TOUR_POINTS[i0].target, TOUR_POINTS[i1].target, smooth);
+            }
+
+            controls.update();
+
+            // Animate employees
+            for (const id in employees) {
+                const empObj = employees[id];
+                const emp = WORKFORCE[id];
+
+                // Pulse status ring
+                const pulse = 1.0 + Math.sin(t + emp.desk_pos[0]) * (emp.status === 'waiting' ? 0.22 : 0.10);
+                empObj.ring.scale.setScalar(pulse);
+
+                if (empObj.frozen) {
+                    // Gently look toward camera while selected
+                    empObj.leftArm.rotation.x = 0;
+                    empObj.rightArm.rotation.x = 0;
+                    empObj.leftLeg.rotation.x = 0;
+                    empObj.rightLeg.rotation.x = 0;
+                    continue;
+                }
+
+                if (emp.status === 'working') {
+                    // Typing animation at desk
+                    empObj.leftArm.rotation.x = -0.65 + Math.sin(t * 2.5 + emp.desk_pos[2]) * 0.18;
+                    empObj.rightArm.rotation.x = -0.65 + Math.cos(t * 2.5 + emp.desk_pos[0]) * 0.18;
+                    empObj.head.rotation.x = 0.08 + Math.sin(t * 0.8) * 0.05;
+                } else if (emp.status === 'waiting') {
+                    empObj.bulb.visible = Math.floor(t * 1.5) % 2 === 0;
+                    empObj.head.rotation.y = Math.sin(t * 0.6) * 0.25;
+                } else if (emp.status === 'available') {
+                    if (now < empObj.roamPauseUntil) {
+                        empObj.leftArm.rotation.x = 0;
+                        empObj.rightArm.rotation.x = 0;
+                        empObj.leftLeg.rotation.x = 0;
+                        empObj.rightLeg.rotation.x = 0;
+                    } else {
+                        const target = empObj.waypoints[empObj.roamIdx];
+                        const pos = empObj.group.position;
+                        const dx = target.x - pos.x;
+                        const dz = target.z - pos.z;
+                        const dist = Math.hypot(dx, dz);
+                        if (dist < 0.25) {
+                            empObj.roamPauseUntil = now + 5000 + Math.random() * 4000;
+                            empObj.roamIdx = (empObj.roamIdx + 1) % empObj.waypoints.length;
+                        } else {
+                            const speed = 0.028;
+                            pos.x += (dx / dist) * speed;
+                            pos.z += (dz / dist) * speed;
+                            const desiredRot = Math.atan2(dx, dz);
+                            empObj.group.rotation.y = desiredRot;
+                            empObj.leftArm.rotation.x = Math.sin(t * 2.4) * 0.45;
+                            empObj.rightArm.rotation.x = -Math.sin(t * 2.4) * 0.45;
+                            empObj.leftLeg.rotation.x = -Math.sin(t * 2.4) * 0.45;
+                            empObj.rightLeg.rotation.x = Math.sin(t * 2.4) * 0.45;
+                        }
+                    }
+                }
+            }
+
+            if (holodeckCrystal && officeGroup && officeGroup.visible) {
+                holodeckCrystal.rotation.y += 0.025;
+                holodeckCrystal.position.y = 1.45 + Math.sin(t * 1.3) * 0.14;
+            }
+
+            if (studioGroup && studioGroup.visible) {
+                studioGroup.traverse(obj => {
+                    if (obj.userData && obj.userData.acousticPulse) {
+                        const s = 1.0 + Math.sin(t * 1.4) * 0.12;
+                        obj.scale.set(s, s, 1);
+                    }
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function buildOfficeHolodeckPortal(x, z) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+            g.userData = { enterHeavenlyBoundStudio: true };
+
+            const base = new THREE.Mesh(
+                new THREE.CylinderGeometry(1.45, 1.75, 0.16, 8),
+                new THREE.MeshStandardMaterial({ color: 0x1e1b4b, metalness: 0.55, roughness: 0.35 })
+            );
+            base.position.y = 0.08;
+            base.userData = { enterHeavenlyBoundStudio: true };
+            g.add(base);
+
+            const ringOuter = new THREE.Mesh(
+                new THREE.RingGeometry(1.5, 1.72, 32),
+                new THREE.MeshBasicMaterial({ color: 0xa855f7, side: THREE.DoubleSide })
+            );
+            ringOuter.rotation.x = -Math.PI / 2;
+            ringOuter.position.y = 0.03;
+            ringOuter.userData = { enterHeavenlyBoundStudio: true };
+            g.add(ringOuter);
+
+            const padGlow = new THREE.Mesh(
+                new THREE.CircleGeometry(1.25, 24),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+            );
+            padGlow.rotation.x = -Math.PI / 2;
+            padGlow.position.y = 0.17;
+            padGlow.userData = { enterHeavenlyBoundStudio: true };
+            g.add(padGlow);
+
+            holodeckCrystal = new THREE.Mesh(
+                new THREE.OctahedronGeometry(0.45, 0),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true })
+            );
+            holodeckCrystal.position.y = 1.45;
+            holodeckCrystal.userData = { enterHeavenlyBoundStudio: true };
+            g.add(holodeckCrystal);
+
+            const lbl = createNameLabelSprite('🎮 KUROSHIO STUDIO ROOM', '#c084fc');
+            lbl.position.set(0, 2.35, 0);
+            lbl.scale.set(3.2, 0.65, 1);
+            lbl.userData = { enterHeavenlyBoundStudio: true };
+            g.add(lbl);
+
+            officeGroup.add(g);
+        }
+
+        function buildExecutiveBlackboard(x, z) {
+            const g = new THREE.Group();
+            g.position.set(x, 0, z);
+            g.userData = { openBlackboard: true };
+
+            const frame = new THREE.Mesh(
+                new THREE.BoxGeometry(3.8, 1.7, 0.14),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.6, roughness: 0.3 })
+            );
+            frame.position.y = 1.65;
+            frame.userData = { openBlackboard: true };
+            g.add(frame);
+
+            const c = document.createElement('canvas');
+            c.width = 512; c.height = 240;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#0a121f';
+            ctx.fillRect(0, 0, 512, 240);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(4, 4, 504, 232);
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = 'bold 26px Inter, monospace';
+            ctx.fillText('tr7n7y7 STRATEGY BLACKBOARD', 24, 42);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '20px monospace';
+            ctx.fillText('1. Federal SBIR Phase I / SAM.gov UEI', 24, 86);
+            ctx.fillText('2. Daily Share Clip + Siren Radio 24/7', 24, 122);
+            ctx.fillText('3. Kuroshio Studio & Rust/Goose Daemons', 24, 158);
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText('[ Click Board to Open Full Roadmap ]', 24, 206);
+
+            const board = new THREE.Mesh(
+                new THREE.PlaneGeometry(3.6, 1.5),
+                new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) })
+            );
+            board.position.set(0, 1.65, 0.08);
+            board.userData = { openBlackboard: true };
+            g.add(board);
+
+            officeGroup.add(g);
+        }
+
+        // ====================================================================
+        // KUROSHIO STUDIO: 3D VIRTUAL ROOM IN HEAVENLYBOUND HOME NODE
+        // ====================================================================
+
+        async function enterStudioMode(targetOverride) {
+            activeMode = 'studio';
+            if (targetOverride) studioSceneTarget = targetOverride;
+            document.getElementById('studioSceneTargetSelect').value = studioSceneTarget;
+            setViewTab('btnViewStudio');
+            isTouring = false;
+            document.getElementById('tourBtn').classList.remove('active');
+            document.getElementById('charCard').style.display = 'none';
+            if (selectedEmpId && employees[selectedEmpId]) {
+                employees[selectedEmpId].frozen = false;
+                selectedEmpId = null;
+            }
+
+            officeGroup.visible = false;
+            studioGroup.visible = true;
+            document.getElementById('studioLeftPanel').style.display = 'flex';
+            document.getElementById('studioRightPanel').style.display = 'flex';
+
+            await loadStudioTargetScene(studioSceneTarget);
+            startStudioSyncPolling();
+            startCameraGlide(new THREE.Vector3(0, 15, 22), new THREE.Vector3(0, 1, -4));
+        }
+
+        async function loadStudioTargetScene(target) {
+            studioSceneTarget = target || 'heavenlybound';
+            selectedStudioRef = null;
+            document.getElementById('studioInspectorForm').style.display = 'none';
+            document.getElementById('studioInspectorEmpty').style.display = 'block';
+
+            const endpoint = studioSceneTarget === 'heavenlybound' ? '/api/studio/heavenlybound' : '/api/studio/scene';
+            try {
+                const res = await fetch(endpoint);
+                if (res.ok) studioManifest = await res.json();
+                else studioManifest = JSON.parse(JSON.stringify(FALLBACK_HEAVENLYBOUND));
+            } catch (e) {
+                studioManifest = JSON.parse(JSON.stringify(FALLBACK_HEAVENLYBOUND));
+            }
+            if (!studioManifest.nautilus_anchor) {
+                studioManifest.nautilus_anchor = {
+                    label: studioSceneTarget === 'heavenlybound' ? 'HeavenlyBound Sovereign Lodge Citadel' : 'Neo-Tokyo Harbor Anchor',
+                    fortress_room_id: 'room_lemuria_studio',
+                    origin: studioSceneTarget === 'heavenlybound'
+                        ? { lat_deg: 35.6586, lon_deg: 139.7454, alt_m: 42.0 }
+                        : { lat_deg: 35.6762, lon_deg: 139.6503, alt_m: 12.0 }
+                };
+            }
+            studioManifest.totems = studioManifest.totems || [];
+            studioManifest.acoustic_profiles = studioManifest.acoustic_profiles || [];
+            studioManifest.colliders = studioManifest.colliders || [];
+            studioManifest.prefabs = studioManifest.prefabs || [];
+
+            syncAnchorInputs();
+            rebuildStudioScene();
+            const label = studioSceneTarget === 'heavenlybound'
+                ? 'Kuroshio Studio • HeavenlyBound Room (room_lemuria_studio)'
+                : 'Kuroshio Studio • Lemuria World';
+            showToast(`Loaded ${label}`);
+        }
+
+        function exitStudioMode() {
+            if (activeMode !== 'studio') return;
+            activeMode = 'office';
+            stopStudioSyncPolling();
+            studioGroup.visible = false;
+            officeGroup.visible = true;
+            document.getElementById('studioLeftPanel').style.display = 'none';
+            document.getElementById('studioRightPanel').style.display = 'none';
+            setViewTab('btnViewOffice');
+        }
+
+        function computeWgs84Ecef(latDeg, lonDeg, altM) {
+            const a = 6378137.0;
+            const e2 = 6.69437999014e-3;
+            const lat = latDeg * Math.PI / 180;
+            const lon = lonDeg * Math.PI / 180;
+            const sinLat = Math.sin(lat);
+            const cosLat = Math.cos(lat);
+            const n = a / Math.sqrt(1.0 - e2 * sinLat * sinLat);
+            return [
+                Math.round((n + altM) * cosLat * Math.cos(lon) * 100) / 100,
+                Math.round((n + altM) * cosLat * Math.sin(lon) * 100) / 100,
+                Math.round((n * (1.0 - e2) + altM) * sinLat * 100) / 100
+            ];
+        }
+
+        function syncAnchorInputs() {
+            const o = studioManifest.nautilus_anchor.origin;
+            document.getElementById('ancLat').value = o.lat_deg;
+            document.getElementById('ancLon').value = o.lon_deg;
+            document.getElementById('ancAlt').value = o.alt_m;
+            const ecef = computeWgs84Ecef(o.lat_deg, o.lon_deg, o.alt_m);
+            document.getElementById('ecefReadout').innerText = `ECEF(m): [${ecef[0]}, ${ecef[1]}, ${ecef[2]}]`;
+        }
+
+        function applyAnchorPreset() {
+            const parts = document.getElementById('anchorPreset').value.split(',');
+            studioManifest.nautilus_anchor = {
+                label: parts[3],
+                fortress_room_id: 'room_lemuria_studio',
+                origin: {
+                    lat_deg: parseFloat(parts[0]),
+                    lon_deg: parseFloat(parts[1]),
+                    alt_m: parseFloat(parts[2])
+                }
+            };
+            syncAnchorInputs();
+            showToast(`Anchored to ${parts[3]}`);
+        }
+
+        function updateAnchorFromInputs() {
+            studioManifest.nautilus_anchor.origin = {
+                lat_deg: parseFloat(document.getElementById('ancLat').value) || 0,
+                lon_deg: parseFloat(document.getElementById('ancLon').value) || 0,
+                alt_m: parseFloat(document.getElementById('ancAlt').value) || 0
+            };
+            const o = studioManifest.nautilus_anchor.origin;
+            const ecef = computeWgs84Ecef(o.lat_deg, o.lon_deg, o.alt_m);
+            document.getElementById('ecefReadout').innerText = `ECEF(m): [${ecef[0]}, ${ecef[1]}, ${ecef[2]}]`;
+        }
+
+        function snapVal(v) {
+            if (!document.getElementById('gridSnapToggle').checked) return v;
+            return Math.round(v * 2) / 2;
+        }
+
+        function addStudioRoomWall(x1, z1, x2, z2, h = 6.0) {
+            const dx = x2 - x1;
+            const dz = z2 - z1;
+            const len = Math.hypot(dx, dz);
+            const angle = Math.atan2(dx, dz);
+            const mx = (x1 + x2) / 2;
+            const mz = (z1 + z2) / 2;
+
+            const pane = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, h, len),
+                new THREE.MeshPhysicalMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.10, roughness: 0.1, side: THREE.DoubleSide })
+            );
+            pane.position.set(mx, h / 2, mz);
+            pane.rotation.y = angle;
+            studioGroup.add(pane);
+
+            const baseNeon = new THREE.Mesh(
+                new THREE.BoxGeometry(0.16, 0.12, len),
+                new THREE.MeshBasicMaterial({ color: 0xa855f7 })
+            );
+            baseNeon.position.set(mx, 0.06, mz);
+            baseNeon.rotation.y = angle;
+            studioGroup.add(baseNeon);
+
+            const topBeam = new THREE.Mesh(
+                new THREE.BoxGeometry(0.16, 0.12, len),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+            );
+            topBeam.position.set(mx, h, mz);
+            topBeam.rotation.y = angle;
+            studioGroup.add(topBeam);
+
+            const postGeo = new THREE.BoxGeometry(0.24, h + 0.1, 0.24);
+            const postMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.75, roughness: 0.25 });
+            [[x1, z1], [x2, z2]].forEach(pt => {
+                const post = new THREE.Mesh(postGeo, postMat);
+                post.position.set(pt[0], h / 2, pt[1]);
+                studioGroup.add(post);
+            });
+        }
+
+        function rebuildStudioScene() {
+            while (studioGroup.children.length > 0) {
+                studioGroup.remove(studioGroup.children[0]);
+            }
+
+            // HeavenlyBound Node 3D Virtual Fortress Workshop Room Enclosure
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(46, 46),
+                new THREE.MeshStandardMaterial({ color: 0x070a14, roughness: 0.9, metalness: 0.15 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            studioGroup.add(ground);
+
+            const grid = new THREE.GridHelper(44, 44, 0x38bdf8, 0x162238);
+            grid.position.y = 0.015;
+            studioGroup.add(grid);
+
+            // Virtual Fortress Room Walls enclosing HeavenlyBound Arena (x: -18..18, z: -19..15, h=6m)
+            addStudioRoomWall(-18, -19, 18, -19, 6.0);
+            addStudioRoomWall(-18, -19, -18, 15, 6.0);
+            addStudioRoomWall(18, -19, 18, 15, 6.0);
+            addStudioRoomWall(-18, 15, -5, 15, 6.0);
+            addStudioRoomWall(5, 15, 18, 15, 6.0);
+
+            // Central 22m x 22m Holodeck Projector Chamber Floor Ring (room_lemuria_studio bounds)
+            const holoRing = new THREE.Mesh(
+                new THREE.RingGeometry(10.8, 11.05, 64),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+            );
+            holoRing.rotation.x = -Math.PI / 2;
+            holoRing.position.set(0, 0.03, -2);
+            studioGroup.add(holoRing);
+
+            const roomBanner = new THREE.Sprite(
+                new THREE.SpriteMaterial({ map: makeSignTexture('HEAVENLYBOUND NODE • KUROSHIO STUDIO', '#a855f7') })
+            );
+            roomBanner.position.set(0, 6.9, -18.8);
+            roomBanner.scale.set(9.5, 1.35, 1);
+            studioGroup.add(roomBanner);
+
+            const axes = new THREE.AxesHelper(3.5);
+            axes.position.y = 0.03;
+            studioGroup.add(axes);
+
+            // Render Totems (supports EsportsCombatUnit, HarvesterRover, LodgeStorefront, TournamentTrophy, NodeVirtualStudioRoom)
+            studioManifest.totems.forEach((t, idx) => {
+                const g = new THREE.Group();
+                g.position.set(t.position[0], t.position[1], t.position[2]);
+                g.userData = { studioRef: { kind: 'totems', index: idx } };
+
+                const cat = t.category || 'Totem';
+                const sc = (t.scale && t.scale[0]) ? t.scale[0] : 1.0;
+
+                if (cat === 'EsportsCombatUnit') {
+                    // Stylized Heavy Assault Mech Silhouette
+                    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, emissive: 0x1d4ed8, emissiveIntensity: 0.35, metalness: 0.6, roughness: 0.3 });
+                    const torso = new THREE.Mesh(new THREE.BoxGeometry(1.2 * sc, 1.4 * sc, 0.9 * sc), bodyMat);
+                    torso.position.y = 1.6 * sc;
+                    torso.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(torso);
+                    const head = new THREE.Mesh(new THREE.BoxGeometry(0.6 * sc, 0.5 * sc, 0.6 * sc), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+                    head.position.y = 2.55 * sc;
+                    head.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(head);
+                } else if (cat === 'HarvesterRover') {
+                    // Sleek CyberBike Courier Rover Silhouette
+                    const bikeMat = new THREE.MeshStandardMaterial({ color: 0x14b8a6, emissive: 0x0d9488, emissiveIntensity: 0.3, metalness: 0.5 });
+                    const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.75 * sc, 0.65 * sc, 2.0 * sc), bikeMat);
+                    chassis.position.y = 0.55 * sc;
+                    chassis.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(chassis);
+                } else if (cat === 'LodgeStorefront') {
+                    // Sovereign Lodge Hearth Storefront Counter
+                    const counter = new THREE.Mesh(
+                        new THREE.BoxGeometry(2.6 * sc, 1.15 * sc, 1.2 * sc),
+                        new THREE.MeshStandardMaterial({ color: 0x9333ea, emissive: 0x7e22ce, emissiveIntensity: 0.35 })
+                    );
+                    counter.position.y = 0.58 * sc;
+                    counter.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(counter);
+                } else if (cat === 'NodeVirtualStudioRoom') {
+                    // Holodeck Projector Architect Desk
+                    const ped = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.9 * sc, 1.1 * sc, 1.0 * sc, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x6d28d9, emissive: 0x7c3aed, emissiveIntensity: 0.45 })
+                    );
+                    ped.position.y = 0.5 * sc;
+                    ped.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(ped);
+                    const orb = new THREE.Mesh(
+                        new THREE.OctahedronGeometry(0.65 * sc, 0),
+                        new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true })
+                    );
+                    orb.position.y = 1.9 * sc;
+                    orb.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(orb);
+                } else {
+                    const col = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.45 * sc, 0.55 * sc, 2.0 * sc, 6),
+                        new THREE.MeshStandardMaterial({ color: 0x0284c7, emissive: 0x0ea5e9, emissiveIntensity: 0.35, roughness: 0.3 })
+                    );
+                    col.position.y = 1.0 * sc;
+                    col.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(col);
+                }
+
+                if (t.is_gaussian_splat_cloud) {
+                    const count = 180;
+                    const posArr = new Float32Array(count * 3);
+                    const colArr = new Float32Array(count * 3);
+                    for (let i = 0; i < count; i++) {
+                        posArr[i * 3] = Math.sin(i * 12.98) * 0.9;
+                        posArr[i * 3 + 1] = 0.5 + Math.abs(Math.cos(i * 78.2)) * 1.4;
+                        posArr[i * 3 + 2] = Math.sin(i * 45.1) * 0.9;
+                        colArr[i * 3] = 0.95;
+                        colArr[i * 3 + 1] = 0.45;
+                        colArr[i * 3 + 2] = 0.85;
+                    }
+                    const pGeo = new THREE.BufferGeometry();
+                    pGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+                    pGeo.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+                    const pts = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.12, vertexColors: true }));
+                    pts.userData = { studioRef: { kind: 'totems', index: idx } };
+                    g.add(pts);
+                }
+
+                const rad = t.trigger_radius_meters || 2.0;
+                const ring = new THREE.Mesh(
+                    new THREE.RingGeometry(Math.max(0.4, rad - 0.08), rad, 32),
+                    new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
+                );
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.y = 0.04;
+                g.add(ring);
+
+                const lbl = createNameLabelSprite(`🏛️ ${t.name}`, '#38bdf8');
+                lbl.position.set(0, 3.1, 0);
+                g.add(lbl);
+
+                addSelectionRingIfMatch(g, 'totems', idx);
+                studioGroup.add(g);
+            });
+
+            // Render Siren Acoustic Profiles
+            studioManifest.acoustic_profiles.forEach((a, idx) => {
+                const g = new THREE.Group();
+                g.position.set(a.position[0], a.position[1], a.position[2]);
+                g.userData = { studioRef: { kind: 'acoustic_profiles', index: idx } };
+
+                const rad = Math.max(1.2, a.ref_distance_m || 2.5);
+                const dome = new THREE.Mesh(
+                    new THREE.SphereGeometry(rad, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+                    new THREE.MeshBasicMaterial({ color: 0xa855f7, wireframe: true, transparent: true, opacity: 0.48 })
+                );
+                dome.userData = { studioRef: { kind: 'acoustic_profiles', index: idx } };
+                g.add(dome);
+
+                const wave = new THREE.Mesh(
+                    new THREE.RingGeometry(rad * 0.85, rad, 32),
+                    new THREE.MeshBasicMaterial({ color: 0xc084fc, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
+                );
+                wave.rotation.x = -Math.PI / 2;
+                wave.position.y = -a.position[1] + 0.05;
+                wave.userData = { acousticPulse: true };
+                g.add(wave);
+
+                const lbl = createNameLabelSprite(`🔊 ${a.name} (${a.siren_frequency_hz}Hz)`, '#c084fc');
+                lbl.position.set(0, rad + 0.5, 0);
+                g.add(lbl);
+
+                addSelectionRingIfMatch(g, 'acoustic_profiles', idx);
+                studioGroup.add(g);
+            });
+
+            // Render Colliders & Gaussian Splat Clouds
+            studioManifest.colliders.forEach((c, idx) => {
+                const g = new THREE.Group();
+                g.position.set(c.position[0], c.position[1], c.position[2]);
+                g.userData = { studioRef: { kind: 'colliders', index: idx } };
+
+                const sx = Math.min(44, Math.max(0.4, c.scale[0] || 2));
+                const sy = Math.max(0.15, c.scale[1] || 0.2);
+                const sz = Math.min(44, Math.max(0.4, c.scale[2] || 2));
+
+                if (c.is_splat_cloud) {
+                    const count = 320;
+                    const posArr = new Float32Array(count * 3);
+                    const colArr = new Float32Array(count * 3);
+                    for (let i = 0; i < count; i++) {
+                        posArr[i * 3] = ((Math.sin(i * 12.9898) * 0.5) * sx);
+                        posArr[i * 3 + 1] = (Math.abs(Math.cos(i * 78.233)) * Math.max(1.2, sy));
+                        posArr[i * 3 + 2] = ((Math.sin(i * 45.164) * 0.5) * sz);
+                        colArr[i * 3] = 0.25 + 0.6 * ((i % 5) / 5);
+                        colArr[i * 3 + 1] = 0.75;
+                        colArr[i * 3 + 2] = 0.95;
+                    }
+                    const geo = new THREE.BufferGeometry();
+                    geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+                    geo.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+                    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.14, vertexColors: true }));
+                    pts.userData = { studioRef: { kind: 'colliders', index: idx } };
+                    g.add(pts);
+                }
+
+                const box = new THREE.Mesh(
+                    new THREE.BoxGeometry(sx, sy, sz),
+                    new THREE.MeshStandardMaterial({
+                        color: c.is_splat_cloud ? 0xec4899 : 0x10b981,
+                        transparent: true,
+                        opacity: c.is_splat_cloud ? 0.12 : 0.14,
+                        roughness: 0.5
+                    })
+                );
+                box.position.y = sy / 2;
+                box.userData = { studioRef: { kind: 'colliders', index: idx } };
+                g.add(box);
+
+                const wire = new THREE.LineSegments(
+                    new THREE.EdgesGeometry(new THREE.BoxGeometry(sx, sy, sz)),
+                    new THREE.LineBasicMaterial({ color: c.is_splat_cloud ? 0xf472b6 : 0x34d399 })
+                );
+                wire.position.y = sy / 2;
+                g.add(wire);
+
+                const lbl = createNameLabelSprite((c.is_splat_cloud ? '✨ ' : '🛣️ ') + c.name, '#34d399');
+                lbl.position.set(0, sy + 0.65, 0);
+                g.add(lbl);
+
+                addSelectionRingIfMatch(g, 'colliders', idx);
+                studioGroup.add(g);
+            });
+
+            renderStudioOutliner();
+        }
+
+        function addSelectionRingIfMatch(group, kind, idx) {
+            if (!selectedStudioRef || selectedStudioRef.kind !== kind || selectedStudioRef.index !== idx) return;
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(0.9, 1.15, 32),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide })
+            );
+            ring.rotation.x = -Math.PI / 2;
+            ring.position.y = 0.05;
+            group.add(ring);
+
+            // Attach Interactive 3D Transform Gizmo (X=Red, Y=Green, Z=Blue)
+            const gz = new THREE.Group();
+            gz.position.y = 1.25;
+            const makeAxis = (axis, color, rot) => {
+                const ag = new THREE.Group();
+                ag.rotation.copy(rot);
+                const shaft = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.045, 0.045, 1.9, 8),
+                    new THREE.MeshBasicMaterial({ color })
+                );
+                shaft.position.y = 0.95;
+                shaft.userData = { gizmoAxis: axis };
+                ag.add(shaft);
+                const tip = new THREE.Mesh(
+                    gizmoMode === 'scale' ? new THREE.BoxGeometry(0.22, 0.22, 0.22) : new THREE.ConeGeometry(0.16, 0.36, 10),
+                    new THREE.MeshBasicMaterial({ color })
+                );
+                tip.position.y = 1.95;
+                tip.userData = { gizmoAxis: axis };
+                ag.add(tip);
+                return ag;
+            };
+            gz.add(makeAxis('x', 0xef4444, new THREE.Euler(0, 0, -Math.PI / 2)));
+            gz.add(makeAxis('y', 0x22c55e, new THREE.Euler(0, 0, 0)));
+            gz.add(makeAxis('z', 0x3b82f6, new THREE.Euler(Math.PI / 2, 0, 0)));
+            group.add(gz);
+        }
+
+        function renderStudioOutliner() {
+            const box = document.getElementById('studioOutliner');
+            box.innerHTML = '';
+            let count = 0;
+
+            const addGroupItems = (kind, icon, list) => {
+                list.forEach((item, idx) => {
+                    count++;
+                    const isSel = selectedStudioRef && selectedStudioRef.kind === kind && selectedStudioRef.index === idx;
+                    const row = document.createElement('div');
+                    row.className = 'outliner-item' + (isSel ? ' active' : '');
+                    row.onclick = () => selectStudioEntity(kind, idx);
+                    row.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${icon} ${item.name}</span><span style="font-size:9.5px;color:var(--muted);">${kind === 'totems' ? 'TOTEM' : (kind === 'acoustic_profiles' ? 'AUDIO' : (item.is_splat_cloud ? 'SPLAT' : 'PHYS'))}</span>`;
+                    box.appendChild(row);
+                });
+            };
+
+            addGroupItems('totems', '🏛️', studioManifest.totems);
+            addGroupItems('acoustic_profiles', '🔊', studioManifest.acoustic_profiles);
+            addGroupItems('colliders', '🧊', studioManifest.colliders);
+            document.getElementById('studioCountBadge').innerText = count;
+        }
+
+        function spawnStudioEntity(kind) {
+            const offset = (studioManifest.totems.length + studioManifest.colliders.length + studioManifest.acoustic_profiles.length) % 6;
+            const px = snapVal((offset - 2.5) * 2.0);
+            const pz = snapVal(offset % 2 === 0 ? 3.5 : -4.5);
+
+            if (kind === 'totems') {
+                const n = studioManifest.totems.length + 1;
+                studioManifest.totems.push({
+                    name: `Totem_Kiosk_${n}`,
+                    store_id: `store_custom_0${n}`,
+                    store_title: `Custom Totem #${n}`,
+                    position: [px, 0.0, pz],
+                    rotation: [0, 0, 0, 1],
+                    scale: [1, 1, 1],
+                    trigger_radius_meters: 2.0,
+                    staff_did: 'did:atlantis:staff_bob',
+                    escrow_usdc: 100.0,
+                    is_gaussian_splat_cloud: false,
+                    category: 'Totem'
+                });
+                selectStudioEntity('totems', studioManifest.totems.length - 1);
+            } else if (kind === 'splat') {
+                const n = studioManifest.colliders.length + 1;
+                studioManifest.colliders.push({
+                    name: `Gaussian_Splat_Pod_${n}`,
+                    type: 'SPLAT_CONVEX_HULL',
+                    position: [px, 0.0, pz],
+                    rotation: [0, 0, 0, 1],
+                    scale: [3.0, 2.0, 3.0],
+                    is_splat_cloud: true
+                });
+                selectStudioEntity('colliders', studioManifest.colliders.length - 1);
+            } else if (kind === 'pacejka') {
+                const n = studioManifest.colliders.length + 1;
+                studioManifest.colliders.push({
+                    name: `Pacejka_Track_${n}`,
+                    type: 'PACEJKA_SURFACE',
+                    position: [px, 0.0, pz],
+                    rotation: [0, 0, 0, 1],
+                    scale: [6.0, 0.15, 4.0],
+                    is_splat_cloud: false
+                });
+                selectStudioEntity('colliders', studioManifest.colliders.length - 1);
+            } else if (kind === 'acoustic_profiles') {
+                const n = studioManifest.acoustic_profiles.length + 1;
+                studioManifest.acoustic_profiles.push({
+                    name: `Siren_Zone_${n}`,
+                    position: [px, 1.5, pz],
+                    volume_m3: 1400.0,
+                    surface_area_m2: 750.0,
+                    average_absorption_alpha: 0.25,
+                    ref_distance_m: 3.0,
+                    rolloff_factor: 1.0,
+                    is_siren_emitter: true,
+                    siren_frequency_hz: 432.0
+                });
+                selectStudioEntity('acoustic_profiles', studioManifest.acoustic_profiles.length - 1);
+            }
+            showToast('Spawned new entity into HeavenlyBound Virtual Room');
+        }
+
+        function selectStudioEntity(kind, index) {
+            const list = studioManifest[kind];
+            if (!list || !list[index]) return;
+            selectedStudioRef = { kind, index };
+            const item = list[index];
+
+            document.getElementById('studioInspectorEmpty').style.display = 'none';
+            document.getElementById('studioInspectorForm').style.display = 'flex';
+            document.getElementById('inspName').value = item.name;
+            document.getElementById('inspX').value = item.position[0];
+            document.getElementById('inspY').value = item.position[1];
+            document.getElementById('inspZ').value = item.position[2];
+
+            const extra = document.getElementById('inspExtraFields');
+            if (kind === 'totems') {
+                extra.innerHTML = `
+                    <div class="studio-grid-2">
+                        <div><div class="box-label">Trigger Radius (m)</div><input type="number" step="0.5" id="extRad" class="studio-input" value="${item.trigger_radius_meters || 2.0}" oninput="applyInspectorEdit()"></div>
+                        <div><div class="box-label">Escrow USDC</div><input type="number" step="10" id="extEscrow" class="studio-input" value="${item.escrow_usdc || 0}" oninput="applyInspectorEdit()"></div>
+                    </div>
+                    <div><div class="box-label">Category / Title</div><input type="text" id="extTitle" class="studio-input" value="${item.store_title || item.category || ''}" oninput="applyInspectorEdit()"></div>
+                    <label style="font-size:11.5px;color:#cbd5e1;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" id="extTotemSplat" ${item.is_gaussian_splat_cloud ? 'checked' : ''} onchange="applyInspectorEdit()"> 3D Gaussian Splat Cloud
+                    </label>
+                `;
+            } else if (kind === 'acoustic_profiles') {
+                extra.innerHTML = `
+                    <div class="studio-grid-2">
+                        <div><div class="box-label">Ref Radius (m)</div><input type="number" step="0.5" id="extRef" class="studio-input" value="${item.ref_distance_m}" oninput="applyInspectorEdit()"></div>
+                        <div><div class="box-label">Siren Freq (Hz)</div><input type="number" step="1" id="extFreq" class="studio-input" value="${item.siren_frequency_hz}" oninput="applyInspectorEdit()"></div>
+                    </div>
+                    <div class="studio-grid-3">
+                        <div><div class="box-label">Vol (m³)</div><input type="number" step="50" id="extVol" class="studio-input" value="${item.volume_m3}" oninput="applyInspectorEdit()"></div>
+                        <div><div class="box-label">Area (m²)</div><input type="number" step="50" id="extArea" class="studio-input" value="${item.surface_area_m2}" oninput="applyInspectorEdit()"></div>
+                        <div><div class="box-label">Alpha α</div><input type="number" step="0.02" id="extAlpha" class="studio-input" value="${item.average_absorption_alpha}" oninput="applyInspectorEdit()"></div>
+                    </div>
+                `;
+            } else if (kind === 'colliders') {
+                extra.innerHTML = `
+                    <div><div class="box-label">Scale [X, Y, Z] (m)</div>
+                        <div class="studio-grid-3">
+                            <input type="number" step="0.5" id="extSx" class="studio-input" value="${item.scale[0]}" oninput="applyInspectorEdit()">
+                            <input type="number" step="0.1" id="extSy" class="studio-input" value="${item.scale[1]}" oninput="applyInspectorEdit()">
+                            <input type="number" step="0.5" id="extSz" class="studio-input" value="${item.scale[2]}" oninput="applyInspectorEdit()">
+                        </div>
+                    </div>
+                    <label style="font-size:11.5px;color:#cbd5e1;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" id="extSplat" ${item.is_splat_cloud ? 'checked' : ''} onchange="applyInspectorEdit()"> Gaussian Splat Point Cloud (.ply)
+                    </label>
+                `;
+            }
+            rebuildStudioScene();
+        }
+
+        function nudgeAxis(axis, delta) {
+            if (!selectedStudioRef) return;
+            const idMap = { x: 'inspX', y: 'inspY', z: 'inspZ' };
+            const el = document.getElementById(idMap[axis]);
+            el.value = snapVal((parseFloat(el.value) || 0) + delta);
+            applyInspectorEdit();
+        }
+
+        function applyInspectorEdit() {
+            if (!selectedStudioRef) return;
+            const item = studioManifest[selectedStudioRef.kind][selectedStudioRef.index];
+            if (!item) return;
+            item.name = document.getElementById('inspName').value || item.name;
+            item.position = [
+                snapVal(parseFloat(document.getElementById('inspX').value) || 0),
+                snapVal(parseFloat(document.getElementById('inspY').value) || 0),
+                snapVal(parseFloat(document.getElementById('inspZ').value) || 0)
+            ];
+
+            if (selectedStudioRef.kind === 'totems') {
+                item.trigger_radius_meters = parseFloat(document.getElementById('extRad').value) || 1.0;
+                item.escrow_usdc = parseFloat(document.getElementById('extEscrow').value) || 0;
+                item.store_title = document.getElementById('extTitle').value || item.store_title;
+                const splatEl = document.getElementById('extTotemSplat');
+                if (splatEl) item.is_gaussian_splat_cloud = splatEl.checked;
+            } else if (selectedStudioRef.kind === 'acoustic_profiles') {
+                item.ref_distance_m = parseFloat(document.getElementById('extRef').value) || 1.5;
+                item.siren_frequency_hz = parseFloat(document.getElementById('extFreq').value) || 432.0;
+                item.volume_m3 = parseFloat(document.getElementById('extVol').value) || 1200;
+                item.surface_area_m2 = parseFloat(document.getElementById('extArea').value) || 600;
+                item.average_absorption_alpha = parseFloat(document.getElementById('extAlpha').value) || 0.25;
+            } else if (selectedStudioRef.kind === 'colliders') {
+                item.scale = [
+                    parseFloat(document.getElementById('extSx').value) || 1.0,
+                    parseFloat(document.getElementById('extSy').value) || 0.15,
+                    parseFloat(document.getElementById('extSz').value) || 1.0
+                ];
+                item.is_splat_cloud = document.getElementById('extSplat').checked;
+            }
+            rebuildStudioScene();
+        }
+
+        function deleteSelectedStudioEntity() {
+            if (!selectedStudioRef) return;
+            studioManifest[selectedStudioRef.kind].splice(selectedStudioRef.index, 1);
+            selectedStudioRef = null;
+            document.getElementById('studioInspectorForm').style.display = 'none';
+            document.getElementById('studioInspectorEmpty').style.display = 'block';
+            rebuildStudioScene();
+            showToast('Removed entity from Studio scene');
+        }
+
+        async function bakeAndHotReload() {
+            if (!studioManifest) return;
+            const saveEndpoint = studioSceneTarget === 'heavenlybound' ? '/api/studio/heavenlybound' : '/api/studio/scene';
+            const fileName = studioSceneTarget === 'heavenlybound' ? 'heavenlybound_narrative_scene.json' : 'lemuria_manifest.json';
+            try {
+                const bakeRes = await fetch('/api/studio/bake', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(studioManifest)
+                });
+                const report = await bakeRes.json();
+
+                const saveRes = await fetch(saveEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(studioManifest)
+                });
+                const saved = await saveRes.json();
+
+                const rtSummary = (report.acoustic_rt60 || [])
+                    .map(a => `${a.name}: ${a.rt60_seconds}s (${a.siren_frequency_hz}Hz)`)
+                    .join('<br>') || 'None';
+
+                document.getElementById('bakeTelemetryBox').innerHTML = `
+                    <div style="color:#22c55e;font-weight:700;">✔ HOT-RELOAD SAVED (${fileName})</div>
+                    <div style="color:#c084fc;">Fortress Room: <b>${report.room_id}</b> (RT60: ${report.sabine_rt60_s}s)</div>
+                    <div>Meshlet Clusters: <b>${report.meshlet_clusters}</b> (${report.max_vertices_per_cluster}v / ${report.max_triangles_per_cluster}t)</div>
+                    <div>Splat Colliders: <b>${report.splat_colliders_synthesized}</b></div>
+                    <div>ECEF (m): [${report.anchor_ecef_m.join(', ')}]</div>
+                    <div style="margin-top:4px;color:var(--accent);">Scene Zones:<br>${rtSummary}</div>
+                `;
+                if (saved.revision) {
+                    document.getElementById('studioRevBadge').innerText = `Rev #${saved.revision}`;
+                }
+                showToast(saved.success ? `Baked & Saved ${fileName}!` : 'Bake completed');
+            } catch (e) {
+                showToast('Offline preview mode: local bake simulated');
+            }
+        }
+
+        function setGizmoMode(mode) {
+            gizmoMode = mode;
+            document.getElementById('gzMove').classList.toggle('active', mode === 'translate');
+            document.getElementById('gzRotate').classList.toggle('active', mode === 'rotate');
+            document.getElementById('gzScale').classList.toggle('active', mode === 'scale');
+            if (activeMode === 'studio') rebuildStudioScene();
+        }
+
+        function startGizmoDragIfHit(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(studioGroup.children, true);
+            for (let i = 0; i < hits.length; i++) {
+                let o = hits[i].object;
+                while (o) {
+                    if (o.userData && o.userData.gizmoAxis) {
+                        const item = studioManifest[selectedStudioRef.kind][selectedStudioRef.index];
+                        activeGizmoDrag = {
+                            axis: o.userData.gizmoAxis,
+                            startX: event.clientX,
+                            startY: event.clientY,
+                            origPos: [...item.position],
+                            origScale: item.scale ? [...item.scale] : [1, 1, 1],
+                            origRadius: item.trigger_radius_meters || item.ref_distance_m || 2.0
+                        };
+                        controls.enabled = false;
+                        return true;
+                    }
+                    o = o.parent;
+                }
+            }
+            return false;
+        }
+
+        function updateGizmoDrag(event) {
+            if (!activeGizmoDrag || !selectedStudioRef) return;
+            const item = studioManifest[selectedStudioRef.kind][selectedStudioRef.index];
+            if (!item) return;
+            const dx = (event.clientX - activeGizmoDrag.startX) * 0.04;
+            const dy = -(event.clientY - activeGizmoDrag.startY) * 0.04;
+            const delta = activeGizmoDrag.axis === 'y' ? dy : dx;
+            const axIdx = activeGizmoDrag.axis === 'x' ? 0 : (activeGizmoDrag.axis === 'y' ? 1 : 2);
+
+            if (gizmoMode === 'translate') {
+                item.position[axIdx] = snapVal(activeGizmoDrag.origPos[axIdx] + delta);
+                document.getElementById('inspX').value = item.position[0];
+                document.getElementById('inspY').value = item.position[1];
+                document.getElementById('inspZ').value = item.position[2];
+            } else if (gizmoMode === 'scale') {
+                const factor = Math.max(0.25, Math.round((1.0 + delta * 0.5) * 4) / 4);
+                if (selectedStudioRef.kind === 'colliders' && item.scale) {
+                    item.scale[axIdx] = Math.max(0.25, Math.round(activeGizmoDrag.origScale[axIdx] * factor * 4) / 4);
+                } else if (selectedStudioRef.kind === 'totems') {
+                    item.trigger_radius_meters = Math.max(0.5, Math.round(activeGizmoDrag.origRadius * factor * 2) / 2);
+                } else if (selectedStudioRef.kind === 'acoustic_profiles') {
+                    item.ref_distance_m = Math.max(1.0, Math.round(activeGizmoDrag.origRadius * factor * 2) / 2);
+                }
+            } else if (gizmoMode === 'rotate') {
+                const angle = delta * 0.4;
+                item.rotation = [0, Math.sin(angle / 2), 0, Math.cos(angle / 2)];
+            }
+            rebuildStudioScene();
+        }
+
+        function endGizmoDrag() {
+            activeGizmoDrag = null;
+            controls.enabled = true;
+            if (selectedStudioRef) {
+                selectStudioEntity(selectedStudioRef.kind, selectedStudioRef.index);
+            }
+        }
+
+        function handleStudioFileDrop(event) {
+            event.preventDefault();
+            document.getElementById('studioDropZone').classList.remove('dragover');
+            if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
+                handleStudioFileInput(event.dataTransfer.files);
+            }
+        }
+
+        function handleStudioFileInput(files) {
+            if (!files || !files.length) return;
+            for (let i = 0; i < files.length; i++) {
+                uploadStudioAsset(files[i], i);
+            }
+        }
+
+        async function uploadStudioAsset(file, idxOffset = 0) {
+            const dropPos = [snapVal((idxOffset - 0.5) * 3.0), 0.0, snapVal(2.0 + idxOffset * 2.0)];
+            try {
+                const res = await fetch('/api/studio/upload-asset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        size_bytes: file.size || 65536,
+                        target: studioSceneTarget,
+                        position: dropPos
+                    })
+                });
+                const d = await res.json();
+                if (d.manifest) {
+                    studioManifest = d.manifest;
+                    studioManifest.totems = studioManifest.totems || [];
+                    studioManifest.colliders = studioManifest.colliders || [];
+                    studioManifest.acoustic_profiles = studioManifest.acoustic_profiles || [];
+                }
+                if (d.revision) {
+                    document.getElementById('studioRevBadge').innerText = `Rev #${d.revision}`;
+                }
+                document.getElementById('bakeTelemetryBox').innerHTML = `
+                    <div style="color:#22c55e;font-weight:700;">✔ AUTO-BAKED DROP: ${d.entity_name}</div>
+                    <div>Meshlets: <b>${d.meshlet_clusters}</b> (${d.max_vertices_per_cluster}v / ${d.max_triangles_per_cluster}t)</div>
+                    <div>Hull Extents: [${(d.convex_hull_extents || [1.5,1.5,1.5]).join(', ')}]</div>
+                    <div>Type: <b>${d.is_splat ? 'Gaussian Splat .ply' : 'GLB/GLTF Mesh Totem'}</b></div>
+                `;
+                if (d.is_splat) {
+                    selectStudioEntity('colliders', studioManifest.colliders.length - 1);
+                } else {
+                    selectStudioEntity('totems', studioManifest.totems.length - 1);
+                }
+                showToast(`Baked ${file.name} (${d.meshlet_clusters} meshlets)`);
+            } catch (e) {
+                showToast(`Queued ${file.name} in Kuroshio Studio`);
+            }
+        }
+
+        function startStudioSyncPolling() {
+            stopStudioSyncPolling();
+            studioSyncTimer = setInterval(async () => {
+                if (activeMode !== 'studio') return;
+                try {
+                    const r = await fetch('/api/studio/events');
+                    if (r.ok) {
+                        const ev = await r.json();
+                        document.getElementById('studioRevBadge').innerText = `Rev #${ev.revision}`;
+                    }
+                } catch (e) {}
+            }, 3000);
+        }
+
+        function stopStudioSyncPolling() {
+            if (studioSyncTimer) {
+                clearInterval(studioSyncTimer);
+                studioSyncTimer = null;
+            }
+        }
+
+        // ====================================================================
+        // tr7n7y7 EXECUTIVE STRATEGY BLACKBOARD
+        // ====================================================================
+
+        async function openBlackboardModal() {
+            document.getElementById('blackboardModal').style.display = 'flex';
+            try {
+                const res = await fetch('/api/blackboard');
+                if (res.ok) blackboardItems = await res.json();
+                else blackboardItems = FALLBACK_BLACKBOARD;
+            } catch (e) {
+                if (!blackboardItems.length) blackboardItems = FALLBACK_BLACKBOARD;
+            }
+            renderBlackboard();
+        }
+
+        function closeBlackboardModal() {
+            document.getElementById('blackboardModal').style.display = 'none';
+        }
+
+        function renderBlackboard() {
+            const container = document.getElementById('bbTracksContainer');
+            container.innerHTML = '';
+            const grouped = {};
+            blackboardItems.forEach(item => {
+                if (!grouped[item.track]) grouped[item.track] = [];
+                grouped[item.track].push(item);
+            });
+
+            for (const track in grouped) {
+                const col = document.createElement('div');
+                col.className = 'bb-col';
+                col.innerHTML = `<div class="bb-col-title">${track} (${grouped[track].length})</div>`;
+                grouped[track].forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'bb-card';
+                    const prioColor = c.priority === 'CRITICAL' ? '#f87171' : (c.priority === 'HIGH' ? '#fbbf24' : '#38bdf8');
+                    const statusClass = c.status === 'done' ? 'bb-status-done' : (c.status === 'in_progress' ? 'bb-status-in_progress' : 'bb-status-todo');
+                    const ownerObj = WORKFORCE[c.owner] || { avatar: '🔱', name: c.owner };
+                    card.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                            <span style="font-size:9.5px;font-weight:800;color:${prioColor};">${c.priority}</span>
+                            <span class="bb-badge ${statusClass}" onclick="toggleBlackboardStatus('${c.id}')" title="Click to advance status">${c.status.toUpperCase()}</span>
+                        </div>
+                        <div style="font-weight:700;color:#fff;">${c.title}</div>
+                        <div style="font-size:11px;color:#94a3b8;line-height:1.4;">${c.details}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                            <span style="font-size:10.5px;color:#cbd5e1;">${ownerObj.avatar} ${ownerObj.name}</span>
+                            <button class="studio-btn" style="padding:3px 8px;font-size:10px;" onclick="dispatchBlackboardTask('${c.owner}', '${c.title.replace(/'/g, '')}')">⚡ Dispatch</button>
+                        </div>
+                    `;
+                    col.appendChild(card);
+                });
+                container.appendChild(col);
+            }
+        }
+
+        async function addBlackboardItem() {
+            const titleEl = document.getElementById('bbNewTitle');
+            const title = titleEl.value.trim();
+            if (!title) return;
+            const track = document.getElementById('bbNewTrack').value;
+            const owner = document.getElementById('bbNewOwner').value;
+            const priority = document.getElementById('bbNewPrio').value;
+
+            try {
+                const res = await fetch('/api/blackboard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'add', track, title, owner, priority, details: 'Added via tr7n7y7 Executive Blackboard.' })
+                });
+                const d = await res.json();
+                if (d.items) blackboardItems = d.items;
+            } catch (e) {
+                blackboardItems.push({ id: 'bb_local_' + Date.now(), track, title, owner, priority, status: 'todo', details: 'Local blackboard item.' });
+            }
+            titleEl.value = '';
+            renderBlackboard();
+            showToast('Added strategy card to tr7n7y7 Blackboard');
+        }
+
+        async function toggleBlackboardStatus(id) {
+            try {
+                const res = await fetch('/api/blackboard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'toggle', id })
+                });
+                const d = await res.json();
+                if (d.items) blackboardItems = d.items;
+            } catch (e) {
+                const item = blackboardItems.find(x => x.id === id);
+                if (item) item.status = item.status === 'todo' ? 'in_progress' : (item.status === 'in_progress' ? 'done' : 'todo');
+            }
+            renderBlackboard();
+        }
+
+        async function dispatchBlackboardTask(owner, title) {
+            try {
+                const res = await fetch('/api/dispatch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_id: owner, directive: title, sender: 'tr7n7y7_Blackboard' })
+                });
+                const d = await res.json();
+                if (d.workforce) {
+                    WORKFORCE = d.workforce;
+                    populateOrgTree();
+                }
+            } catch (e) {}
+            showToast(`Dispatched "${title}" to ${owner}`);
+        }
+
+        function openRustSnippetModal() {
+            const o = studioManifest.nautilus_anchor.origin;
+            const fileRef = studioSceneTarget === 'heavenlybound' ? 'heavenlybound_narrative_scene.json' : 'lemuria_manifest.json';
+            const snippet = `use lumeria_app_sdk::{NautilusWorldAnchor, StudioLevelDocument, Wgs84Coord};
+use lemuria_engine::aaaa::{KuroshioPackManifest, KuroshioTargetPlatform, RollbackNetcodeSession};
+use home_node::LemuriaStudioRoomService;
+
+pub fn boot_tr7n7y7_kuroshio_studio() -> Result<(), Box<dyn std::error::Error>> {
+    // 1. Anchor game world into HeavenlyBound Sovereign Citadel Home Node (room_lemuria_studio)
+    let room_service = LemuriaStudioRoomService::new("room_lemuria_studio");
+    let anchor = NautilusWorldAnchor::new(
+        "${studioManifest.nautilus_anchor.label}",
+        Wgs84Coord { lat_deg: ${o.lat_deg}, lon_deg: ${o.lon_deg}, alt_m: ${o.alt_m} },
+    );
+
+    // 2. Hot-reload scene authored visually in Kuroshio Studio
+    let json = include_str!("../../assets/${fileRef}");
+    let doc = StudioLevelDocument::from_manifest_json(json)?;
+    let bake = doc.bake_summary();
+    let _netcode: RollbackNetcodeSession<u64> = RollbackNetcodeSession::new(8);
+    let pack = KuroshioPackManifest {
+        app_name: "heavenlybound-lite".into(),
+        entry_scene_path: "assets/${fileRef}".into(),
+        target: KuroshioTargetPlatform::WasmWebGpu,
+        strip_symbols: true,
+    };
+    println!("tr7n7y7 Node {} ({} meshlets) -> {}", room_service.studio_room_id, bake.estimated_meshlet_clusters, pack.generate_build_command());
+    Ok(())
+}`;
+            document.getElementById('modalTitle').innerText = 'Export tr7n7y7 Rust SDK & Kuroshio Packager';
+            document.getElementById('modalBody').innerHTML = `<pre style="background:#05080f;border:1px solid var(--border);border-radius:8px;padding:12px;color:#38bdf8;font-size:11.5px;overflow-x:auto;user-select:text;">${snippet.replace(/</g, '&lt;')}</pre>`;
+            document.getElementById('infoModal').style.display = 'flex';
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
